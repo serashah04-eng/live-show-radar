@@ -39,7 +39,7 @@ export function MyArtists({ artists }: { artists: MyArtist[] }) {
   };
 
   const clearAll = () => {
-    if (!window.confirm(`Remove all ${list.length} artists from My artists? You will stop getting their alerts.`)) return;
+    if (!window.confirm(`Remove all ${list.length} artists from Favourites? You will stop getting their alerts.`)) return;
     const before = list;
     setError(null);
     setList([]);
@@ -65,7 +65,7 @@ export function MyArtists({ artists }: { artists: MyArtist[] }) {
     <div>
       {error && <p className="notice-err mb-3" role="alert">{error}</p>}
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="mono">{list.length} artists in your collection</p>
+        <p className="mono">{list.length} artists in your favourites</p>
         <button type="button" className="btn-ghost !min-h-8 !px-3 text-xs" onClick={clearAll}>Clear all</button>
       </div>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -87,7 +87,7 @@ export function MyArtists({ artists }: { artists: MyArtist[] }) {
               <p className="mt-2 text-xs">
                 {a.next ? <Link href={`/events/${a.next.id}`} className="text-lime underline underline-offset-2">Next: {a.next.label}</Link> : <span className="muted">No India show announced yet. We keep watching.</span>}
               </p>
-              <button type="button" onClick={() => remove(a)} className="mt-3 text-xs muted underline underline-offset-2 hover:text-orange" aria-label={`Remove ${a.name} from my artists`}>Remove</button>
+              <button type="button" onClick={() => remove(a)} className="mt-3 text-xs muted underline underline-offset-2 hover:text-orange" aria-label={`Remove ${a.name} from favourites`}>Remove</button>
             </li>
           );
         })}

@@ -73,7 +73,7 @@ export function FindShows({ pending, followedCount }: { pending: PendingArtist[]
     <section className="card" aria-label="Find shows">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="text-xl">Find shows for my artists</h2>
+          <h2 className="text-xl">Find shows for favourites</h2>
           <p className="text-sm muted">
             {pending.length > 0
               ? `${pending.length} of the ${followedCount} artists you follow haven't been searched yet. Searches take up to a couple of minutes each.`

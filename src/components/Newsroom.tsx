@@ -55,11 +55,11 @@ export function Newsroom({ upcoming, followedIds, showAll }: { upcoming: FeedIte
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="section-no">Newsroom</p>
-          <h1 id="newsroom" className="text-4xl sm:text-6xl">{showAll ? "Every show in India" : "Your artists, coming up"}</h1>
+          <h1 id="newsroom" className="text-4xl sm:text-6xl">{showAll ? "Every show in India" : "Your favourites, coming up"}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <p className="mono">{upcoming.length} upcoming shows{newest ? ` · latest find ${timeAgo(newest)}` : ""}</p>
-          {showAll ? <Link href="/" className="btn-ghost">Back to my artists</Link> : <Link href="/?all=1" className="btn-primary">Show all genres and artists</Link>}
+          {showAll ? <Link href="/" className="btn-ghost">Back to favourites</Link> : <Link href="/?all=1" className="btn-primary">Show all genres and artists</Link>}
         </div>
       </div>
       {upcoming.length === 0 ? (

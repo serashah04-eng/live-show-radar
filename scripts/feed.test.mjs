@@ -174,7 +174,7 @@ test("Book show link: stored ticket URL first, then ticketing sites, social post
   assert.equal(locationLink({ venue: null, city: null }), null);
   assert.equal(bookingLink({ ticket_url: null, sources: [] }), null);
 });
-test("default view is My artists once you follow anyone: genre-only matches are left out", () => {
+test("default view is Favourites once you follow anyone: genre-only matches are left out", () => {
   const prefs = { ...base, allGenres: false, genreSlugs: ["indie-pop"], followedArtistIds: ["a2"] }; // follows The Local Train, likes indie-pop
   assert.deepEqual(ids(buildFeed(events, prefs, {}, NOW)), ["e3"]); // Anuv Jain's indie-pop shows are NOT included
 });

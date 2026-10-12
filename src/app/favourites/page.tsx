@@ -58,7 +58,7 @@ async function Collection() {
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl sm:text-6xl">My artists</h1>
+          <h1 className="text-4xl sm:text-6xl">Favourites</h1>
           <p className="mt-2 muted">Your collection. Results and alerts are based on this list.</p>
         </div>
         <Link href="/artists" className="btn-primary">+ Add artists</Link>

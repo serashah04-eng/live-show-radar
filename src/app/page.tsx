@@ -61,7 +61,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <h2 id="rec" className="text-3xl sm:text-4xl">For you · {topCity} first</h2>
           <span className="flex gap-4">
-            <Link href="/my-artists" className="mono underline underline-offset-2">My artists</Link>
+            <Link href="/favourites" className="mono underline underline-offset-2">Favourites</Link>
             <Link href="/settings" className="mono underline underline-offset-2">Change cities</Link>
           </span>
         </div>

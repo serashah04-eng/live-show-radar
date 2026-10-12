@@ -16,7 +16,7 @@ export async function Nav() {
     ? [
         { href: "/", label: "Dashboard", hint: "your radar" },
         { href: "/feed", label: "Concert feed", hint: "every show, filtered" },
-        { href: "/my-artists", label: "My artists", hint: "your collection" },
+        { href: "/favourites", label: "Favourites", hint: "your collection" },
         { href: "/artists", label: "Artists", hint: "browse and add" },
         { href: "/start", label: "Pick your scene", hint: "genres, cities, artists" },
         { href: "/submit", label: "Add event", hint: "found a show? paste the link" },
@@ -43,7 +43,7 @@ export async function Nav() {
           {user && (
             <>
               <Link href="/feed" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Feed</Link>
-              <Link href="/my-artists" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">My artists</Link>
+              <Link href="/favourites" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Favourites</Link>
               <Link href="/artists" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Artists</Link>
               <Link href="/settings" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Settings</Link>
             </>

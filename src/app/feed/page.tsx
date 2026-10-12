@@ -104,7 +104,7 @@ async function Feed({ searchParams }: { searchParams: SP }) {
         <fieldset>
           <legend className="label">Show me</legend>
           {([
-            ["mine", "My artists", "Only artists you follow"],
+            ["mine", "Favourites", "Only your followed favourites"],
             ["genres", "+ my genres", "Followed artists and saved genres"],
             ["all", "Everything", "Discover artists you don't follow"],
           ] as const).map(([value, label, hint]) => (
