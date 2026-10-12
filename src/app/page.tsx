@@ -12,15 +12,16 @@ import { createClient } from "@/lib/supabase/server";
 // "Find shows" runs a search per artist from this page; allow it the hosting maximum.
 export const maxDuration = 300;
 
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: { searchParams: Promise<{ all?: string }> }) {
   return (
     <Suspense fallback={<p className="muted" role="status">Loading the newsroom…</p>}>
-      <Dashboard />
+      <Dashboard searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Dashboard() {
+async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: string }> }) {
+  const showAll = (await searchParams).all === "1";
   const user = await requireUser();
   const sb = await createClient();
   const [events, { prefs, notif }, runs, failedAlerts] = await Promise.all([
@@ -31,8 +32,8 @@ async function Dashboard() {
   ]);
   const pending = await loadPendingSearches(sb, prefs.followedArtistIds);
 
-  // newsroom: every upcoming show we know, regardless of who you follow
-  const upcoming = buildFeed(events, prefs, { scope: "all", sort: "date" }).filter((i) => !i.event.is_sample);
+  // newsroom: YOUR artists by default; every upcoming show only after "Show all" is pressed
+  const upcoming = buildFeed(events, prefs, { scope: showAll ? "all" : "mine", sort: "date" }).filter((i) => !i.event.is_sample);
   // for you: your artists, your top city first
   const mine = buildFeed(events, prefs, { sort: "relevance" });
   const topCity = prefs.cities[0] ?? "Bengaluru";
@@ -52,7 +53,7 @@ async function Dashboard() {
         {" · "}Email <strong className={notif.email_enabled && notif.email_address ? "text-lime" : "text-orange"}>{notif.email_enabled && notif.email_address ? "on" : "not set up"}</strong>
         {" · "}<Link href="/settings" className="underline underline-offset-2">Change</Link>
       </p>
-      <Newsroom upcoming={upcoming} followedIds={prefs.followedArtistIds} />
+      <Newsroom upcoming={upcoming} followedIds={prefs.followedArtistIds} showAll={showAll} />
 
       <FindShows pending={pending} followedCount={prefs.followedArtistIds.length} />
 

@@ -30,7 +30,7 @@ function Row({ item, followed }: { item: FeedItem; followed: Set<string> }) {
 }
 
 /** Top of the home page: what was just found, then a month-by-month calendar. Everything links through. */
-export function Newsroom({ upcoming, followedIds }: { upcoming: FeedItem[]; followedIds: string[] }) {
+export function Newsroom({ upcoming, followedIds, showAll }: { upcoming: FeedItem[]; followedIds: string[]; showAll: boolean }) {
   const followed = new Set(followedIds);
   const seen = new Set<string>();
   const justFound = [...upcoming]
@@ -55,12 +55,19 @@ export function Newsroom({ upcoming, followedIds }: { upcoming: FeedItem[]; foll
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="section-no">Newsroom</p>
-          <h1 id="newsroom" className="text-4xl sm:text-6xl">Coming up in India</h1>
+          <h1 id="newsroom" className="text-4xl sm:text-6xl">{showAll ? "Every show in India" : "Your artists, coming up"}</h1>
         </div>
-        <p className="mono">{upcoming.length} upcoming shows{newest ? ` · latest find ${timeAgo(newest)}` : ""}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="mono">{upcoming.length} upcoming shows{newest ? ` · latest find ${timeAgo(newest)}` : ""}</p>
+          {showAll ? <Link href="/" className="btn-ghost">Back to my artists</Link> : <Link href="/?all=1" className="btn-primary">Show all genres and artists</Link>}
+        </div>
       </div>
       {upcoming.length === 0 ? (
-        <p className="card muted">No upcoming shows found yet. Pick artists and tap Find shows, and they appear here.</p>
+        <div className="card">
+          <p>{showAll ? "No upcoming shows found yet." : "None of the artists you follow has an announced India show yet."}</p>
+          <p className="mt-1 text-sm muted">{showAll ? "We keep searching every 30 minutes." : "That is normal: we keep watching and will alert you the moment one is announced. Want to see what else is on?"}</p>
+          {!showAll && <Link href="/?all=1" className="btn-primary mt-3">Show all genres and artists</Link>}
+        </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
           <div className="card">

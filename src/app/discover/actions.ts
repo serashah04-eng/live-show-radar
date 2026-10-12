@@ -12,8 +12,8 @@ export async function discoverForArtist(artistId: string): Promise<OnDemandResul
   const user = await requireUser();
   const fail = (error: string): OnDemandResult => ({ artist: "", status: "failed", found: 0, created: 0, error });
   if (!/^[0-9a-f-]{36}$/i.test(artistId)) return fail("invalid artist");
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return fail("Search is not configured on the server (missing GEMINI_API_KEY).");
+  const key = process.env.GEMINI_API_KEY ?? "";
+  if (!key && !process.env.OPENROUTER_API_KEY) return fail("unavailable"); // nothing to search with; shown to the user as a friendly "unavailable"
 
   const sb = await createClient();
   const { prefs } = await loadPrefs(sb, user.id);

@@ -9,23 +9,19 @@ export interface PendingArtist {
   name: string;
 }
 
-type Line = { name: string; text: string; ok: boolean };
+type Line = { name: string; text: string; ok: boolean; unavailable?: boolean };
 
-const describe = (r: Awaited<ReturnType<typeof discoverForArtist>>): { text: string; ok: boolean } => {
+/** What a person needs to know. Technical errors never reach the screen; "unavailable" means the search service could not be reached. */
+const describe = (r: Awaited<ReturnType<typeof discoverForArtist>>): { text: string; ok: boolean; unavailable?: boolean } => {
   switch (r.status) {
     case "searched":
-      return { ok: true, text: r.created > 0 ? `${r.created} new show${r.created === 1 ? "" : "s"} found` : r.found > 0 ? "no new shows (already known)" : "no upcoming India shows found" };
+      return { ok: true, text: r.created > 0 ? `${r.created} new show${r.created === 1 ? "" : "s"} found` : r.found > 0 ? "nothing new, we already have their shows" : "no India shows announced yet. We keep watching and will alert you." };
     case "skipped_recent":
-      return { ok: true, text: "searched a few minutes ago" };
+      return { ok: true, text: "checked a few minutes ago" };
     case "no_sources":
-      return { ok: false, text: "the search came back empty, try again in a bit" };
+      return { ok: true, text: "no India shows announced yet. We keep watching and will alert you." };
     default:
-      return {
-        ok: false,
-        text: /429|RESOURCE_EXHAUSTED/i.test(r.error ?? "")
-          ? "the Google Search quota for this API key is used up for now. Check the key's plan and billing in Google AI Studio, or try again later"
-          : r.error ?? "search failed",
-      };
+      return { ok: false, unavailable: true, text: "could not be checked right now. We retry automatically." };
   }
 };
 
@@ -39,13 +35,16 @@ export function FindShows({ pending, followedCount }: { pending: PendingArtist[]
   const [current, setCurrent] = useState<string | null>(null);
   const [lines, setLines] = useState<Line[]>([]);
   const [done, setDone] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
   const stop = useRef(false);
 
   const run = async () => {
     stop.current = false;
     setRunning(true);
     setDone(false);
+    setUnavailable(false);
     setLines([]);
+    let failedInARow = 0;
     for (const a of pending) {
       if (stop.current) break;
       setCurrent(a.name);
@@ -56,7 +55,12 @@ export function FindShows({ pending, followedCount }: { pending: PendingArtist[]
         res = { artist: a.name, status: "failed" as const, found: 0, created: 0, error: "the request timed out" };
       }
       const d = describe(res);
+      failedInARow = d.unavailable ? failedInARow + 1 : 0;
       setLines((l) => [...l, { name: a.name, ...d }]);
+      if (failedInARow >= 2) {
+        setUnavailable(true); // the search service is down: stop instead of failing once per artist
+        break;
+      }
     }
     setCurrent(null);
     setRunning(false);
@@ -85,12 +89,13 @@ export function FindShows({ pending, followedCount }: { pending: PendingArtist[]
       </div>
       <div aria-live="polite" className="mt-3 space-y-1 text-sm">
         {current && <p className="mono">Searching {current}…</p>}
-        {lines.map((l, i) => (
-          <p key={i} className={l.ok ? "" : "text-orange"}>
+        {unavailable && <p className="notice">Live search is unavailable right now. Your artists are safe and the site retries every 30 minutes by itself. You do not need to do anything.</p>}
+        {lines.filter((l) => !unavailable || !l.unavailable).map((l, i) => (
+          <p key={i} className={l.ok ? "" : "muted"}>
             <strong>{l.name}:</strong> {l.text}
           </p>
         ))}
-        {done && lines.length > 0 && <p className="notice-ok mt-2">Done. Your feed has been refreshed.</p>}
+        {done && !unavailable && lines.length > 0 && <p className="notice-ok mt-2">Done. Your feed has been refreshed.</p>}
       </div>
     </section>
   );
