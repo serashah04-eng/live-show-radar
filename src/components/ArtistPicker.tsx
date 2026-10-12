@@ -53,7 +53,7 @@ export function ArtistPicker({
 }) {
   const [followed, setFollowed] = useState<Set<string>>(new Set(initialFollowed));
   const [q, setQ] = useState("");
-  const [genre, setGenre] = useState<string | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set()); // any number of genres; artists of ANY of them show
   const [moreGenres, setMoreGenres] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -71,9 +71,16 @@ export function ArtistPicker({
   const needle = q.trim().toLowerCase();
   const shown = useMemo(() => {
     if (needle) return artists.filter((a) => a.name.toLowerCase().includes(needle));
-    if (genre) return artists.filter((a) => a.genres.includes(genre));
+    if (picked.size) return artists.filter((a) => a.genres.some((g) => picked.has(g)));
     return [];
-  }, [artists, needle, genre]);
+  }, [artists, needle, picked]);
+  const toggleGenre = (slug: string) =>
+    setPicked((p) => {
+      const n = new Set(p);
+      if (n.has(slug)) n.delete(slug);
+      else n.add(slug);
+      return n;
+    });
 
   const apply = (id: string, follow: boolean) =>
     setFollowed((prev) => {
@@ -104,13 +111,14 @@ export function ArtistPicker({
       {mode === "draft" && [...followed].map((id) => <input key={id} type="hidden" name="artists" value={id} />)}
 
       {/* 1. genre */}
-      <p className="mono mb-2">1 · Pick a genre</p>
+      <p className="mono mb-2">1 · Pick genres (as many as you like)</p>
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Genres">
         {visibleGenres.map((g) => (
-          <button key={g.slug} type="button" className="pill-tab" aria-pressed={genre === g.slug && !needle} onClick={() => { setQ(""); setGenre(genre === g.slug ? null : g.slug); }}>
+          <button key={g.slug} type="button" className="pill-tab" aria-pressed={picked.has(g.slug)} onClick={() => { setQ(""); toggleGenre(g.slug); }}>
             {g.name} <span className="ml-1 opacity-60">{counts.get(g.slug)}</span>
           </button>
         ))}
+        {picked.size > 0 && <button type="button" className="pill-tab" onClick={() => setPicked(new Set())}>Clear genres ({picked.size})</button>}
         {ranked.length > 10 && (
           <button type="button" className="pill-tab" onClick={() => setMoreGenres(!moreGenres)}>{moreGenres ? "Fewer genres" : `+${ranked.length - 10} more genres`}</button>
         )}
@@ -118,7 +126,7 @@ export function ArtistPicker({
 
       {/* 2. artists of that genre, or search results from any genre */}
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
-        <p className="mono">2 · {needle ? `Search results (${shown.length})` : genre ? `${genreName.get(genre)} artists (${shown.length})` : "Pick the artists you follow"}</p>
+        <p className="mono">2 · {needle ? `Search results (${shown.length})` : picked.size ? `${[...picked].map((g) => genreName.get(g) ?? g).join(" + ")}: ${shown.length} artists` : "Pick the artists you follow"}</p>
         <div>
           <label htmlFor="artist-search" className="sr-only">Search any artist</label>
           <input id="artist-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search any artist, any genre" className="field w-64 max-w-full" />
@@ -128,7 +136,7 @@ export function ArtistPicker({
 
       {shown.length === 0 ? (
         <p className="card mt-3 text-sm muted">
-          {needle ? <>No artist called &ldquo;{q}&rdquo; in the list. You can add them from the Artists page.</> : <>Choose a genre above to see its artists, or search for one by name.</>}
+          {needle ? <>No artist called &ldquo;{q}&rdquo; in the list. You can add them from the Artists page.</> : <>Choose one or more genres above to see their artists, or search for one by name.</>}
         </p>
       ) : (
         <ul className="mt-3 grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-5 lg:grid-cols-7">

@@ -4,9 +4,8 @@ import { EventCard } from "@/components/EventCard";
 import { FindShows } from "@/components/FindShows";
 import { Newsroom } from "@/components/Newsroom";
 import { isAdminUser, requireUser } from "@/lib/auth";
-import { loadFeedEvents, loadPendingSearches, loadPrefs, loadRecentRuns } from "@/lib/data";
+import { loadFeedEvents, loadPendingSearches, loadPrefs } from "@/lib/data";
 import { buildFeed, placeholderItem } from "@/lib/feed";
-import { formatDateTime, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 // "Find shows" runs a search per artist from this page; allow it the hosting maximum.
@@ -24,11 +23,9 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
   const showAll = (await searchParams).all === "1";
   const user = await requireUser();
   const sb = await createClient();
-  const [events, { prefs, notif }, runs, failedAlerts] = await Promise.all([
+  const [events, { prefs, notif }] = await Promise.all([
     loadFeedEvents(sb),
     loadPrefs(sb, user.id),
-    loadRecentRuns(sb, 12),
-    sb.from("notification_log").select("*", { count: "exact", head: true }).eq("status", "failed"),
   ]);
   const admin = await isAdminUser();
   const pending = admin ? await loadPendingSearches(sb, prefs.followedArtistIds) : [];
@@ -39,13 +36,11 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
   const mine = buildFeed(events, prefs, { sort: "relevance" });
   const topCity = prefs.cities[0] ?? "Bengaluru";
   const earlyBird = mine.filter((i) => i.deadline !== null).sort((a, b) => (a.deadline as number) - (b.deadline as number));
+  const ebReported = mine.filter((i) => i.deadline === null && i.event.phases.some((p) => p.phase === "early_bird"));
   const history = buildFeed(events, prefs, { when: "past", sort: "relevance" });
   const allArtists = [...new Map(events.flatMap((e) => e.artists).map((a) => [a.id, a])).values()];
   const phCtx = { artists: allArtists, prefs, now: new Date() };
 
-  const latest = new Map<string, (typeof runs)[number]>();
-  for (const r of runs) if (!latest.has(r.source_name)) latest.set(r.source_name, r);
-  const lastSuccess = runs.find((r) => r.status === "success" || r.status === "partial");
 
   return (
     <div className="space-y-12">
@@ -87,12 +82,20 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
         )}
       </section>
 
-      {earlyBird.length > 0 && (
-        <section aria-labelledby="eb">
-          <h2 id="eb" className="mb-4 text-3xl text-orange sm:text-4xl">Early-bird deadlines (verified)</h2>
+      <section aria-labelledby="eb">
+        <h2 id="eb" className="mb-1 text-3xl sm:text-4xl"><span className="text-orange">Early-bird</span> tickets</h2>
+        <p className="mb-4 text-sm muted">Early-bird windows close fast. A deadline is shown as confirmed only when a source states it; we alert you the moment one appears.</p>
+        {earlyBird.length > 0 ? (
           <div className="space-y-3">{earlyBird.map((i) => <EventCard key={i.event.id} item={i} />)}</div>
-        </section>
-      )}
+        ) : ebReported.length > 0 ? (
+          <div className="space-y-3">
+            <p className="notice">Early bird has been mentioned for these shows, but no source gives a confirmed deadline yet. Check the source.</p>
+            {ebReported.map((i) => <EventCard key={i.event.id} item={i} />)}
+          </div>
+        ) : (
+          <p className="card muted">No early-bird sale announced for your artists yet. Nothing is hidden: when one is announced, it appears here and in your alerts.</p>
+        )}
+      </section>
 
       <section aria-labelledby="hist">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -104,23 +107,6 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
         </div>
       </section>
 
-      <details className="card">
-        <summary className="cursor-pointer text-lg font-bold">Status: discovery and alerts</summary>
-        <p className="mt-3 text-sm muted">
-          Last successful discovery: <strong className="text-offwhite">{lastSuccess ? `${timeAgo(lastSuccess.finished_at ?? lastSuccess.started_at)} (${formatDateTime(lastSuccess.finished_at ?? lastSuccess.started_at)})` : "none yet"}</strong>
-          {" · "}Failed alert deliveries: <strong className={(failedAlerts.count ?? 0) > 0 ? "text-orange" : "text-offwhite"}>{failedAlerts.count ?? 0}</strong>
-        </p>
-        <ul className="mt-3 space-y-2 text-sm">
-          {[...latest.values()].map((r) => (
-            <li key={r.id} className="flex flex-wrap items-center justify-between gap-2">
-              <span>{r.source_name}</span>
-              <span className={r.status === "failed" ? "badge-warn" : "badge-verified"}>{r.status}: found {r.events_found}, new {r.events_new}</span>
-              {r.error && <span className="w-full text-xs text-orange">{r.error}</span>}
-            </li>
-          ))}
-          {latest.size === 0 && <li className="muted">No discovery runs recorded yet.</li>}
-        </ul>
-      </details>
     </div>
   );
 }
