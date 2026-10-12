@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { setFollow, setFollowMany } from "@/app/artists/actions";
+import { setFollow } from "@/app/artists/actions";
+import { artistImage } from "@/lib/artist-images";
 
 export interface PickerArtist {
   id: string;
@@ -54,8 +55,7 @@ export function ArtistPicker({
   const [followed, setFollowed] = useState<Set<string>>(new Set(initialFollowed));
   const [q, setQ] = useState("");
   const [genre, setGenre] = useState<string | null>(null);
-  const [origin, setOrigin] = useState<string | null>(null);
-  const [onlyMine, setOnlyMine] = useState(false);
+  const [onlyFollowing, setOnlyFollowing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
@@ -65,17 +65,12 @@ export function ArtistPicker({
     return m;
   }, [artists]);
 
+  const topGenres = useMemo(() => genres.filter((g) => genreCounts.has(g.slug)).sort((x, y) => (genreCounts.get(y.slug) ?? 0) - (genreCounts.get(x.slug) ?? 0)).slice(0, 8), [genres, genreCounts]);
+
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    const mine = new Set(myGenres);
-    return artists.filter(
-      (a) =>
-        (!needle || a.name.toLowerCase().includes(needle)) &&
-        (!genre || a.genres.includes(genre)) &&
-        (!origin || a.origin === origin) &&
-        (!onlyMine || a.genres.some((g) => mine.has(g))),
-    );
-  }, [artists, q, genre, origin, onlyMine, myGenres]);
+    return artists.filter((a) => (!needle || a.name.toLowerCase().includes(needle)) && (!genre || a.genres.includes(genre)) && (!onlyFollowing || followed.has(a.id)));
+  }, [artists, q, genre, onlyFollowing, followed]);
 
   const apply = (ids: string[], follow: boolean) =>
     setFollowed((prev) => {
@@ -101,60 +96,31 @@ export function ArtistPicker({
       });
   };
 
-  const bulk = (follow: boolean) => {
-    const ids = shown.map((a) => a.id);
-    setError(null);
-    apply(ids, follow);
-    if (mode === "live")
-      startTransition(async () => {
-        const r = await setFollowMany(ids, follow);
-        if (!r.ok) {
-          apply(ids, !follow);
-          setError("That didn't save. Check your connection and try again.");
-        }
-      });
-  };
-
   return (
     <div>
       {mode === "draft" && [...followed].map((id) => <input key={id} type="hidden" name="artists" value={id} />)}
 
       <div className="flex flex-wrap items-center gap-2">
-        <label htmlFor="artist-search" className="sr-only">Filter artists by name</label>
-        <input id="artist-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name (optional)" className="field max-w-xs" />
-        <button type="button" className="btn-ghost min-h-9 px-4" onClick={() => bulk(true)} disabled={shown.length === 0}>Select all shown</button>
-        <button type="button" className="btn-ghost min-h-9 px-4" onClick={() => bulk(false)} disabled={shown.length === 0}>Clear shown</button>
+        <label htmlFor="artist-search" className="sr-only">Search artists</label>
+        <input id="artist-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search artists" className="field max-w-xs" />
+        <button type="button" className="pill-tab" aria-pressed={onlyFollowing} onClick={() => setOnlyFollowing(!onlyFollowing)}>Following ({followed.size})</button>
       </div>
-
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter by type">
-        <button type="button" className="pill-tab" aria-pressed={origin === null} onClick={() => setOrigin(null)}>All types</button>
-        {ORIGINS.map((o) => (
-          <button key={o.key} type="button" className="pill-tab" aria-pressed={origin === o.key} onClick={() => setOrigin(origin === o.key ? null : o.key)}>
-            {o.label}
-          </button>
-        ))}
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter by genre">
-        {myGenres.length > 0 && (
-          <button type="button" className="pill-tab" aria-pressed={onlyMine} onClick={() => setOnlyMine(!onlyMine)}>My genres</button>
-        )}
-        <button type="button" className="pill-tab" aria-pressed={genre === null} onClick={() => setGenre(null)}>Every genre</button>
-        {genres.filter((g) => genreCounts.has(g.slug)).map((g) => (
-          <button key={g.slug} type="button" className="pill-tab" aria-pressed={genre === g.slug} onClick={() => setGenre(genre === g.slug ? null : g.slug)}>
-            {g.name} <span className="ml-1 opacity-60">{genreCounts.get(g.slug)}</span>
-          </button>
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter by genre">
+        <button type="button" className="pill-tab" aria-pressed={genre === null} onClick={() => setGenre(null)}>All</button>
+        {topGenres.map((g) => (
+          <button key={g.slug} type="button" className="pill-tab" aria-pressed={genre === g.slug} onClick={() => setGenre(genre === g.slug ? null : g.slug)}>{g.name}</button>
         ))}
       </div>
 
       <p className="mono mt-3" aria-live="polite">
-        Following {followed.size} · showing {shown.length} of {artists.length}
+        Showing {shown.length} of {artists.length} artists
       </p>
       {error && <p className="notice-err mt-2" role="alert">{error}</p>}
 
       {shown.length === 0 ? (
         <p className="card mt-3 muted">No artists match these filters. Clear a filter above, or add the artist below.</p>
       ) : (
-        <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           {shown.map((a) => {
             const [bg, fg] = colorFor(a.name);
             const on = followed.has(a.id);
@@ -162,7 +128,12 @@ export function ArtistPicker({
               <li key={a.id}>
                 <button type="button" className="tile h-full w-full" aria-pressed={on} onClick={() => toggle(a.id)}>
                   <span className="check" aria-hidden="true">✓</span>
-                  <span className="monogram" style={{ background: bg, color: fg }} aria-hidden="true">{initials(a.name)}</span>
+                  {artistImage(a.name) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={artistImage(a.name)!.url} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-square w-full rounded-xl object-cover" />
+                  ) : (
+                    <span className="monogram" style={{ background: bg, color: fg }} aria-hidden="true">{initials(a.name)}</span>
+                  )}
                   <span className="mt-2 block">
                     <span className="block text-sm font-bold leading-tight">{a.name}</span>
                     <span className="block text-[11px] muted">

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { bookingLink, isPlaceholder, type FeedItem } from "@/lib/feed";
+import { bookingLink, isPlaceholder, locationLink, type FeedItem } from "@/lib/feed";
+import { sourceLinks } from "@/lib/links";
 import { eventDateParts, formatDateTime, TICKET_STATUS_LABEL, timeAgo } from "@/lib/format";
 import { BookButton } from "./BookButton";
 import { StatusBadge } from "./StatusBadge";
@@ -11,6 +12,8 @@ export function EventCard({ item }: { item: FeedItem }) {
   const artistNames = e.artists.map((a) => a.name).join(" + ");
   const link = bookingLink(e);
   const placeholder = isPlaceholder(e);
+  const where = locationLink(e);
+  const src = sourceLinks(e.sources).filter((s) => s.url !== link?.url)[0] ?? null;
 
   return (
     <article className="ticket rise">
@@ -54,7 +57,8 @@ export function EventCard({ item }: { item: FeedItem }) {
           ) : (
             <>
               {!item.isPast && <BookButton link={link} />}
-              {item.isPast && link && <a href={link.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-10 px-4">Read the source</a>}
+              {where && <a href={where.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-10 px-4">Location</a>}
+              {src && <a href={src.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-10 px-4" title={src.note}>{item.isPast ? "Read the source" : "Source"}: {src.host}{src.credibility === "unvetted" ? " (unverified)" : ""}</a>}
               <Link href={`/events/${e.id}`} className="btn-ghost min-h-10 px-4">Details</Link>
               <span className="text-xs muted">
                 {e.sources.length} source{e.sources.length === 1 ? "" : "s"} · checked {timeAgo(e.last_checked_at)}

@@ -1,3 +1,4 @@
+import { cleanVenue } from "../../feed.ts";
 import { searchWeb, generateJson, type LlmOptions } from "../../ai/llm.ts";
 import { normalizeCity, parseDateField, isPast } from "../normalize.ts";
 import type { DiscoveryContext, RawDiscovery, SourceAdapter } from "../types.ts";
@@ -157,7 +158,7 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
             startsAt: d.startsAt,
             datePrecision: d.precision,
             dateBucket: d.bucket,
-            venue: e.venue?.trim() || null,
+            venue: cleanVenue(e.venue),
             city: normalizeCity(e.city),
             ticketUrl: null, // never taken from the model; set only after human review
             sourceUrl,

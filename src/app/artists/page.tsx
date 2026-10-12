@@ -12,11 +12,8 @@ export const maxDuration = 300;
 export default function ArtistsPage() {
   return (
     <>
-      <p className="mono">Artists</p>
-      <h1 className="mt-1 text-4xl sm:text-6xl">Tap to follow</h1>
-      <p className="mt-2 max-w-2xl muted">
-        Every tap saves instantly. Following is separate from genres: followed artists stay in your feed even when their genre isn&apos;t selected.
-      </p>
+      <h1 className="text-4xl sm:text-6xl">Your artists</h1>
+      <p className="mt-2 muted">Tap a photo to follow. It saves instantly.</p>
       <Suspense fallback={<p className="mt-6 muted" role="status">Loading artists…</p>}>
         <Artists />
       </Suspense>

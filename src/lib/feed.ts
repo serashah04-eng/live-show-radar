@@ -199,7 +199,8 @@ export function emptyStateHints(prefs: Prefs, filters: Filters): string[] {
   return hints;
 }
 
-const BOOKING_HOSTS = ["bookmyshow", "district.in", "skillbox", "insider.in", "ticketmaster", "paytm", "eventbrite", "townscript", "ticketgenie", "thumpn", "livefiesta", "bandsintown"];
+/** Sites that SELL tickets. News sites, blogs, social posts and listing aggregators are never booking links. */
+export const TICKET_HOSTS = ["bookmyshow", "district.in", "skillboxes", "insider.in", "ticketmaster", "paytm", "eventbrite", "townscript", "ticketgenie", "thumpn", "livefiesta", "ticketmaster.in"];
 const hostOf = (u: string) => {
   try {
     return new URL(u).hostname.replace(/^www\./, "").toLowerCase();
@@ -207,32 +208,47 @@ const hostOf = (u: string) => {
     return "";
   }
 };
+const isTicketer = (u: string) => {
+  try {
+    const x = new URL(u);
+    return TICKET_HOSTS.some((h) => x.hostname.toLowerCase().includes(h)) && x.pathname.length > 1; // not just a homepage
+  } catch {
+    return false;
+  }
+};
 
 export interface BookingLink {
   url: string;
   host: string;
-  /** "ticket" = a ticket link stored for the event. "listing" = a page that lists the event (may link to tickets). */
+  /** "ticket" = the stored ticket URL. "listing" = a page on a ticketing site that came up for this show (check it lists the show). */
   kind: "ticket" | "listing";
 }
 
 /**
- * Where "Book show" should send the user. Never invents a link: it is the stored ticket URL, else the best
- * source page (ticketing sites first, social posts last).
+ * Where "Book show" sends the user. Only a ticketing site, never a news article: the stored ticket URL, else a
+ * source page hosted on a known ticketing site. If neither exists the answer is null (no booking link yet).
  */
 export function bookingLink(e: Pick<FeedEvent, "ticket_url" | "sources">): BookingLink | null {
   if (e.ticket_url && hostOf(e.ticket_url)) return { url: e.ticket_url, host: hostOf(e.ticket_url), kind: "ticket" };
-  const ranked = e.sources
-    .map((s) => ({ url: s.url, host: hostOf(s.url) }))
-    .filter((s) => s.host)
-    .sort((a, b) => score(a.host) - score(b.host));
-  const best = ranked[0];
-  return best ? { url: best.url, host: best.host, kind: "listing" } : null;
+  const t = e.sources.find((s) => isTicketer(s.url));
+  return t ? { url: t.url, host: hostOf(t.url), kind: "listing" } : null;
 }
-const score = (host: string) => {
-  if (BOOKING_HOSTS.some((h) => host.includes(h))) return 0;
-  if (/instagram|facebook|twitter|x\.com|youtube/.test(host)) return 2;
-  return 1;
-};
+
+/** Venue text that says nothing ("TBA", "Stadium presentation") is dropped instead of shown as a place. */
+export function cleanVenue(v: string | null | undefined): string | null {
+  const t = (v ?? "").replace(/\s+/g, " ").trim();
+  if (!t || t.length < 3) return null;
+  if (/(tba|tbc|tbd|to be (announced|confirmed|decided)|not (yet )?(announced|disclosed|stated)|unknown|n\/a|presentation|exact venue|\bvenue$)/i.test(t)) return null;
+  return t;
+}
+
+/** Google Maps search for the venue (or just the city when the venue is unknown). Never an invented address. */
+export function locationLink(e: Pick<FeedEvent, "venue" | "city">): { url: string; label: string; exact: boolean } | null {
+  const venue = cleanVenue(e.venue);
+  const q = [venue, e.city].filter(Boolean).join(", ");
+  if (!q) return null;
+  return { url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, label: venue ? q : `${e.city} (venue not announced)`, exact: Boolean(venue) };
+}
 // ---------- event type, facets (filter options that always have results) and placeholders ----------
 
 export const EVENT_TYPES = ["Concert", "Festival", "Tour date", "Club night"] as const;

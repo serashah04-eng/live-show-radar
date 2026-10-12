@@ -1,3 +1,4 @@
+import { cleanVenue } from "../feed.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { dedupeKey, isPast, normalizeCity, normalizeName, parseDateField } from "../discovery/normalize.ts";
 import { matchArtistsDeterministic } from "../discovery/match.ts";
@@ -59,7 +60,7 @@ function toRaw(x: Extracted, item: { url: string; title: string }, source: { nam
     startsAt: d.startsAt,
     datePrecision: d.precision,
     dateBucket: d.bucket,
-    venue: x.venue,
+    venue: cleanVenue(x.venue),
     city: normalizeCity(x.city),
     ticketUrl: x.method === "structured" ? x.ticketUrl : null, // only structured data may supply a ticket link
     sourceUrl: item.url,

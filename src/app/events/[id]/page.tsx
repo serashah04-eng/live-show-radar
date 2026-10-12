@@ -5,7 +5,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { BookButton } from "@/components/BookButton";
 import { requireUser } from "@/lib/auth";
 import { APP_NAME } from "@/lib/brand";
-import { bookingLink } from "@/lib/feed";
+import { bookingLink, cleanVenue, locationLink } from "@/lib/feed";
+import { sourceLinks } from "@/lib/links";
 import { eventDateParts, formatDateTime, TICKET_STATUS_LABEL, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,6 +40,11 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
     ticket_url: e.ticket_url,
     sources: (e.event_sources as { source_url: string; source_title: string | null }[]).map((s) => ({ url: s.source_url, title: s.source_title })),
   });
+  const where = locationLink(e);
+  const srcs = sourceLinks((e.event_sources as { source_url: string; source_title: string | null }[]).map((x) => ({ url: x.source_url, title: x.source_title })));
+  const article = srcs.find((x) => x.url !== booking?.url) ?? null;
+  const firstArtist = (e.event_artists as { artists: { name: string } | null }[]).map((a) => a.artists?.name).find(Boolean) ?? e.title;
+  const q = (t: string) => encodeURIComponent(t);
   const artists = (e.event_artists as { artists: { name: string } | null }[]).map((a) => a.artists?.name).filter(Boolean).join(" + ");
   const phases = e.ticket_phases as {
     id: string; phase: string; starts_at: string | null; ends_at: string | null; price_text: string | null;
@@ -72,7 +78,7 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
       <dl className="card grid gap-4 sm:grid-cols-2">
         {[
           ["Date", d.full],
-          ["Venue", e.venue ?? "Not stated"],
+          ["Venue", cleanVenue(e.venue) ?? "Not announced"],
           ["City", e.city ?? "Not stated"],
           ["First discovered", formatDateTime(e.discovered_at)],
           ["Last checked", e.last_checked_at ? `${timeAgo(e.last_checked_at)} (${formatDateTime(e.last_checked_at)})` : "Not yet"],
@@ -83,9 +89,22 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
             <dd className="mt-1">{v}</dd>
           </div>
         ))}
-        <div className="sm:col-span-2">
-          <BookButton link={booking} large />
-          <p className="mt-2 text-xs muted">Opens the seller&apos;s or listing site. {APP_NAME} does not sell tickets, and you decide whether to buy.</p>
+        <div className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
+          <div className="rounded-xl border border-line p-3">
+            <p className="label !mb-2">1 · Booking</p>
+            <BookButton link={booking} large />
+            <p className="mt-2 text-xs muted">{booking ? "A ticketing site. FrontRow does not sell tickets." : "No ticketing page has been found. We will alert you when one appears."}</p>
+          </div>
+          <div className="rounded-xl border border-line p-3">
+            <p className="label !mb-2">2 · Location</p>
+            {where ? <a href={where.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-12 px-6">Open in Maps</a> : <span className="badge-pending">Location not announced</span>}
+            <p className="mt-2 text-xs muted">{where ? where.label : "Neither venue nor city is stated."}</p>
+          </div>
+          <div className="rounded-xl border border-line p-3">
+            <p className="label !mb-2">3 · Where we found it</p>
+            {article ? <a href={article.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-12 px-6">Read the article</a> : <span className="badge-pending">No article link</span>}
+            <p className="mt-2 text-xs muted">{article ? `${article.host}: ${article.note}` : "Only a ticketing page is known."}</p>
+          </div>
         </div>
       </dl>
 
@@ -126,6 +145,7 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
             <li key={s.id} className="card !p-3 text-sm">
               <a className="break-all text-cobalt-soft underline underline-offset-2" href={s.source_url} target="_blank" rel="noopener noreferrer">{s.source_title ?? s.source_url}</a>
               <span className="ml-2 muted">via {s.discovery_source.replace("_", " ")} · checked {timeAgo(s.last_checked_at)}</span>
+              {(() => { const c = sourceLinks([{ url: s.source_url, title: null }])[0]; return <span className={c.credibility === "credible" ? "badge-verified ml-2" : c.credibility === "lower" ? "badge-pending ml-2" : "badge-warn ml-2"} title={c.note}>{c.credibility === "credible" ? "Vetted source" : c.credibility === "lower" ? "Community listing" : "Unverified source"}</span>; })()}
             </li>
           ))}
         </ul>
@@ -139,6 +159,15 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
             ))}
           </ul>
         )}
+      </section>
+      <section aria-labelledby="nr">
+        <h2 id="nr" className="mb-3 text-2xl">News and reviews</h2>
+        <p className="mb-3 text-sm muted">These open a search for you. They are searches, not claims: FrontRow has not read the results.</p>
+        <div className="flex flex-wrap gap-2">
+          <a className="btn-ghost min-h-10 px-4" target="_blank" rel="noopener noreferrer" href={`https://news.google.com/search?q=${q(firstArtist + " India concert")}`}>Latest news</a>
+          <a className="btn-ghost min-h-10 px-4" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/search?q=${q(firstArtist + " live India concert review")}`}>Concert reviews</a>
+          <a className="btn-ghost min-h-10 px-4" target="_blank" rel="noopener noreferrer" href={`https://www.youtube.com/results?search_query=${q(firstArtist + " live India")}`}>Watch on YouTube</a>
+        </div>
       </section>
     </article>
   );

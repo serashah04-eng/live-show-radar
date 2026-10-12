@@ -1,7 +1,7 @@
 // Behaviour tests for the personalization rules. Run: node --test scripts/feed.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildFeed, emptyStateHints, bookingLink, buildFacets, eventType, placeholderItem, isPlaceholder } from "../src/lib/feed.ts";
+import { buildFeed, emptyStateHints, bookingLink, cleanVenue, locationLink, buildFacets, eventType, placeholderItem, isPlaceholder } from "../src/lib/feed.ts";
 import { registrableDomain, countIndependentDomains } from "../src/lib/discovery/corroboration-core.ts";
 
 const NOW = new Date("2026-10-12T00:00:00Z");
@@ -163,7 +163,15 @@ test("Book show link: stored ticket URL first, then ticketing sites, social post
   const l = bookingLink({ ticket_url: null, sources: [src("https://www.instagram.com/reel/x"), src("https://blog.example.org/post"), src("https://in.bookmyshow.com/events/y")] });
   assert.equal(l.host, "in.bookmyshow.com");
   assert.equal(l.kind, "listing");
-  assert.equal(bookingLink({ ticket_url: null, sources: [src("https://www.instagram.com/reel/x"), src("https://blog.example.org/post")] }).host, "blog.example.org");
+  // a news article or a social post is NEVER a booking link
+  assert.equal(bookingLink({ ticket_url: null, sources: [src("https://www.instagram.com/reel/x"), src("https://rollingstoneindia.com/arijit-tour-2027")] }), null);
+  assert.equal(bookingLink({ ticket_url: null, sources: [src("https://in.bookmyshow.com/")] }), null); // a ticketer homepage is not a show page
+  assert.equal(cleanVenue("Stadium presentation"), null);
+  assert.equal(cleanVenue("TBA"), null);
+  assert.equal(cleanVenue("Mahalaxmi Racecourse"), "Mahalaxmi Racecourse");
+  assert.equal(locationLink({ venue: "NICE Grounds", city: "Bengaluru" }).exact, true);
+  assert.equal(locationLink({ venue: "TBA", city: "Mumbai" }).exact, false);
+  assert.equal(locationLink({ venue: null, city: null }), null);
   assert.equal(bookingLink({ ticket_url: null, sources: [] }), null);
 });
 test("default view is My artists once you follow anyone: genre-only matches are left out", () => {

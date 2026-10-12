@@ -1,14 +1,14 @@
 import type { BookingLink } from "@/lib/feed";
 
 /**
- * "Book show" sends the user to the page where they can buy. We never sell tickets and never claim
- * availability: when the link is a listing page rather than a stored ticket URL, we say so.
+ * "Book show" only ever points at a ticketing site. When no ticketing page is known the button is replaced by an honest
+ * "tickets not announced" note, never by a news article. We never sell tickets and never claim availability.
  */
 export function BookButton({ link, large = false }: { link: BookingLink | null; large?: boolean }) {
   if (!link) {
     return (
-      <span className="badge-pending" title="No booking page has been found for this show yet">
-        No booking link yet
+      <span className="badge-pending" title="No ticketing page has been found for this show">
+        Tickets not announced yet
       </span>
     );
   }
@@ -24,7 +24,7 @@ export function BookButton({ link, large = false }: { link: BookingLink | null; 
         <span className="sr-only"> (opens {link.host} in a new tab)</span>
       </a>
       <span className="text-xs muted">
-        {link.kind === "ticket" ? `Tickets on ${link.host}` : `Listed on ${link.host}: check availability there`}
+        {link.kind === "ticket" ? `Tickets on ${link.host}` : `Ticketing page on ${link.host}: check it lists this show`}
       </span>
     </span>
   );
