@@ -57,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </div>
               <div>
                 <p className="mono mb-3">Your account</p>
-                <ul className="space-y-2"><li><Link href="/settings" className="hover:text-lime">Settings and alerts</Link></li><li><Link href="/submit" className="hover:text-lime">Add an event</Link></li></ul>
+                <ul className="space-y-2"><li><Link href="/settings" className="hover:text-lime">Settings and alerts</Link></li><li><Link href="/signin" className="hover:text-lime">Test sign-in</Link></li><li><Link href="/submit" className="hover:text-lime">Add an event</Link></li></ul>
               </div>
             </div>
             <p className="mt-4 text-xs muted">
