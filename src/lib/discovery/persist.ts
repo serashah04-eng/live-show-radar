@@ -109,6 +109,21 @@ export async function persistDiscovery(
     );
   }
 
+  // 3b. early bird: a mention is stored as status + evidence, never as a verified deadline
+  if (raw.earlyBirdExcerpt) {
+    await db.from("events").update({ ticket_status: "early_bird_announced" }).eq("id", eventId).in("ticket_status", ["unknown", "upcoming", "tickets_available"]);
+    const { data: seen } = await db.from("event_evidence").select("id").eq("event_id", eventId).eq("kind", "ticket_phase").eq("evidence_url", raw.sourceUrl).limit(1);
+    if (!seen?.length) {
+      await db.from("event_evidence").insert({
+        event_id: eventId,
+        source_id: src.id,
+        kind: "ticket_phase",
+        evidence_url: raw.sourceUrl,
+        excerpt: `[AI-reported via Google Search, unverified] Early bird mentioned: ${raw.earlyBirdExcerpt}`.slice(0, 500),
+      });
+    }
+  }
+
   // 4. evidence trail (labels make clear whether a model or an API produced the claim)
   if (created || conflict) {
     const label = raw.aiReported ? "[AI-reported via Google Search, unverified] " : raw.officialApiRecord ? "[Official API record] " : "[User-submitted] ";

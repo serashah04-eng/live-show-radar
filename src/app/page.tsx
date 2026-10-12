@@ -40,7 +40,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
   const mine = buildFeed(events, prefs, { sort: "relevance" });
   const topCity = prefs.cities[0] ?? "Bengaluru";
   const earlyBird = mine.filter((i) => i.deadline !== null).sort((a, b) => (a.deadline as number) - (b.deadline as number));
-  const ebReported = mine.filter((i) => i.deadline === null && i.event.phases.some((p) => p.phase === "early_bird"));
+  const ebReported = mine.filter((i) => i.deadline === null && (i.event.phases.some((p) => p.phase === "early_bird") || i.event.ticket_status === "early_bird_announced" || i.event.ticket_status === "early_bird_ending_soon"));
   // the hero: the next upcoming show among your favourites, else the next show anywhere
   const heroItem = mine.find((i) => !i.isPast) ?? upcoming[0] ?? null;
   const heroFav = Boolean(heroItem?.event.artists.some((a) => prefs.followedArtistIds.includes(a.id)));

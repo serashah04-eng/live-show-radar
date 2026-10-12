@@ -12,6 +12,8 @@ interface ExtractedEvent {
   city?: string | null;
   source_index?: number;
   has_ticket_link?: boolean;
+  early_bird_mentioned?: boolean;
+  early_bird_excerpt?: string | null;
   excerpt?: string | null;
 }
 
@@ -123,7 +125,7 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
         }
 
         // Step 2: structured extraction, tied to the real search-result pages
-        const extractText = await generateJson(`Research notes about ${past ? "past" : "upcoming"} India concerts by "${artist.name}":\n"""\n${notes}\n"""\n\nPages the search used:\n${chunks.map((c, i) => `${i}: ${c.host}`).join("\n")}\n\nExtract ONLY events that appear in the notes, for ${artist.name}, ${past ? `that took place between ${since} and ${today} (not today), each with a full YYYY-MM-DD date_iso`: `dated ${today} or later`}. Return JSON: {"events":[{"artist":string,"title":string,"date_text":string|null,"date_iso":"YYYY-MM-DD"|"YYYY-MM"|null,"venue":string|null,"city":string|null,"source_index":number (index from the pages list that lists this event),"has_ticket_link":boolean,"excerpt":string|null (short phrase copied from the notes)}]}. Use null for anything the notes do not state. Do not invent anything. If none, {"events":[]}.`, llm);
+        const extractText = await generateJson(`Research notes about ${past ? "past" : "upcoming"} India concerts by "${artist.name}":\n"""\n${notes}\n"""\n\nPages the search used:\n${chunks.map((c, i) => `${i}: ${c.host}`).join("\n")}\n\nExtract ONLY events that appear in the notes, for ${artist.name}, ${past ? `that took place between ${since} and ${today} (not today), each with a full YYYY-MM-DD date_iso`: `dated ${today} or later`}. Return JSON: {"events":[{"artist":string,"title":string,"date_text":string|null,"date_iso":"YYYY-MM-DD"|"YYYY-MM"|null,"venue":string|null,"city":string|null,"source_index":number (index from the pages list that lists this event),"has_ticket_link":boolean,"early_bird_mentioned":boolean (true ONLY if the notes say early-bird / phase-1 / presale tickets exist for this show),"early_bird_excerpt":string|null (short phrase copied from the notes about the early-bird sale or its dates),"excerpt":string|null (short phrase copied from the notes)}]}. Use null for anything the notes do not state. Do not invent anything. If none, {"events":[]}.`, llm);
         let events: ExtractedEvent[] = [];
         try {
           events = JSON.parse(extractText).events ?? [];
@@ -166,6 +168,7 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
             externalId: null,
             discoverySource: "gemini_grounding",
             excerpt: e.excerpt ?? null,
+            earlyBirdExcerpt: !past && e.early_bird_mentioned === true ? (e.early_bird_excerpt ?? "early-bird tickets mentioned").slice(0, 300) : null,
             aiReported: true,
             officialApiRecord: false,
           });

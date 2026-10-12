@@ -123,6 +123,7 @@ function contextFor(item: PlannedAlert, e: FeedEvent, phases: PhaseInfo[]): Aler
     verified: e.verification_status === "verified",
     corroborated: e.corroborated,
     conflict: e.has_conflict,
+    earlyBird: e.ticket_status === "early_bird_announced" || e.ticket_status === "early_bird_ending_soon" ? "mentioned" : "none",
     ticketUrl: e.ticket_url,
     sourceLinks: e.sources.map((s) => ({ url: s.url, label: s.title ?? "link" })),
     eventUrl: eventLink(e.id),

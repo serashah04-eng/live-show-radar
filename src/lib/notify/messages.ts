@@ -10,6 +10,8 @@ export interface AlertContext {
   dateLabel: string; // already formatted, or "Date not announced"
   verified: boolean;
   corroborated: boolean;
+  /** what the sources say about early-bird tickets: "mentioned" = a source mentions it but gave no confirmed deadline */
+  earlyBird?: "none" | "mentioned";
   conflict?: boolean; // sources disagree: shown, never silently resolved
   ticketUrl: string | null;
   sourceLinks: { url: string; label: string }[];
@@ -71,7 +73,13 @@ export function composeAlert(c: AlertContext): ComposedAlert {
     lines.push(`Evidence: ${c.phase.evidenceUrl}`);
     if (c.phase.excerpt) lines.push(`Page says: "${c.phase.excerpt}"`);
   }
-  if (!c.phase && (c.kind === "new_concert" || c.kind === "status_change")) lines.push("Early bird: not stated by any source we read yet. We alert you if one is announced.");
+  if (!c.phase && (c.kind === "new_concert" || c.kind === "status_change")) {
+    lines.push(
+      c.earlyBird === "mentioned"
+        ? "Early bird: a source mentions early-bird tickets but gives no confirmed deadline. Open the source link and check the dates. We alert you again the moment a deadline is confirmed."
+        : "Early bird: not announced by any source we read yet. We alert you the moment one is.",
+    );
+  }
   lines.push(certainty(c));
   if (c.ticketUrl) lines.push(`Tickets: ${c.ticketUrl}`);
   for (const s of c.sourceLinks.slice(0, 3)) lines.push(`Source (${s.label}): ${s.url}`);

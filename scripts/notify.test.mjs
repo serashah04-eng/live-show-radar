@@ -52,7 +52,7 @@ test("unverified single-source events DO alert (labelled UNVERIFIED with the war
   assert.equal(plan({ events: [ev("e1", { verification_status: "pending_verification" })] }).length, 1);
   const m = composeAlert({ kind: "new_concert", artists: "A", title: "T", venue: null, city: "Mumbai", dateLabel: "Date not announced", verified: false, corroborated: false, ticketUrl: null, sourceLinks: [], eventUrl: null });
   assert.match(m.emailText, /UNVERIFIED: Non-credible or unverified source\. Please check the official ticketer or promoter before acting\./);
-  assert.match(m.emailText, /Early bird: not stated/);
+  assert.match(m.emailText, /Early bird: not announced/);
 });
 
 test("rejected, stale and already-happened events never alert", () => {
@@ -161,4 +161,10 @@ test("message HTML escapes untrusted text", () => {
 test("errors never leak tokens or keys", () => {
   assert.ok(!sanitizeError("fail https://api.telegram.org/bot123456:ABC-def_ghi/sendMessage").includes("ABC-def"));
   assert.ok(!sanitizeError("Bearer re_abcDEF123 rejected").includes("abcDEF"));
+});
+
+test("alert states early-bird status honestly: mentioned-but-unconfirmed vs not announced", () => {
+  const base = { kind: "new_concert", artists: "A", title: "T", venue: null, city: "Mumbai", dateLabel: "x", verified: false, corroborated: false, ticketUrl: null, sourceLinks: [], eventUrl: null };
+  assert.match(composeAlert({ ...base, earlyBird: "mentioned" }).emailText, /mentions early-bird tickets but gives no confirmed deadline/);
+  assert.match(composeAlert({ ...base, earlyBird: "none" }).emailText, /Early bird: not announced/);
 });

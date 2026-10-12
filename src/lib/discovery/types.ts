@@ -17,6 +17,8 @@ export interface RawDiscovery {
   externalId: string | null;
   discoverySource: DiscoverySource;
   excerpt: string | null; // text that supports the details
+  /** short quote from the notes when a source mentions early-bird tickets (never a confirmed deadline) */
+  earlyBirdExcerpt?: string | null;
   aiReported: boolean; // true = produced by an AI model, never auto-verified
   officialApiRecord: boolean; // true = structured record from a permitted official API
 }
