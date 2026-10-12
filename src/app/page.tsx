@@ -6,7 +6,7 @@ import { PhotoTile } from "@/components/PhotoTile";
 import { requireUser } from "@/lib/auth";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { loadFeedEvents, loadPendingSearches, loadPrefs, loadRecentRuns } from "@/lib/data";
-import { buildFeed } from "@/lib/feed";
+import { buildFeed, placeholderItem } from "@/lib/feed";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -50,6 +50,9 @@ async function Dashboard() {
   const elsewhere = feed.filter((i) => i.cityRank !== 0);
   const verified = feed.filter((i) => i.event.verification_status === "verified").length;
   const reported = feed.filter((i) => i.event.verification_status === "pending_verification" && i.event.corroborated).length;
+  const allArtists = [...new Map(events.flatMap((e) => e.artists).map((a) => [a.id, a])).values()];
+  const phCtx = { artists: allArtists, prefs, now: new Date() };
+  const history = buildFeed(events, prefs, { when: "past", sort: "relevance" });
   const earlyBird = feed.filter((i) => i.deadline !== null).sort((a, b) => (a.deadline as number) - (b.deadline as number));
 
   const latest = new Map<string, (typeof runs)[number]>();
@@ -117,13 +120,16 @@ async function Dashboard() {
           <Link href="/settings" className="mono underline underline-offset-2">Change city priority</Link>
         </div>
         {feed.length === 0 ? (
+          <div className="space-y-3">
+          <EventCard item={placeholderItem({}, { ...phCtx, seed: "recommended" })} />
           <div className="card">
-            <p>Nothing matches your picks yet.</p>
+            <p>Nothing real matches your picks yet.</p>
             <p className="mt-1 text-sm muted">
               {followed.length === 0
                 ? <>Tap <Link className="text-lime underline" href="/start">Pick your scene</Link> to choose artists, genres and cities.</>
-                : <>Tap <strong>Find shows now</strong> above to search for shows by the {followed.length} artist{followed.length === 1 ? "" : "s"} you follow. We never fill the feed with made-up events.</>}
+                : <>Tap <strong>Find shows now</strong> above to search for shows by the {followed.length} artist{followed.length === 1 ? "" : "s"} you follow. The card above is a labelled placeholder, never a real show.</>}
             </p>
+          </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -134,15 +140,30 @@ async function Dashboard() {
         )}
       </section>
 
+      {/* history: shows that already happened */}
+      <section aria-labelledby="hist" data-gsap="rise">
+        <p className="section-no">History</p>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <h2 id="hist" className="text-3xl sm:text-5xl">Recent shows in India</h2>
+          <Link href="/feed?when=past" className="mono underline underline-offset-2">All past shows</Link>
+        </div>
+        <div className="space-y-3">
+          {(history.length ? history.slice(0, 6) : [placeholderItem({ when: "past" }, { ...phCtx, seed: "history" })]).map((i) => <EventCard key={i.event.id} item={i} />)}
+        </div>
+      </section>
+
       {/* 03 early bird */}
       <section aria-labelledby="eb" data-gsap="rise">
         <p className="section-no">03 · Early-bird watch</p>
         <h2 id="eb" className="mb-4 text-3xl text-orange sm:text-5xl">Verified deadlines</h2>
         {earlyBird.length === 0 ? (
-          <p className="card muted">
-            No verified early-bird windows right now. Orange alerts only appear when a deadline is confirmed with evidence, so a quiet panel means
-            nothing is confirmed, not that nothing exists. Check the feed for unconfirmed listings.
-          </p>
+          <div className="space-y-3">
+            <p className="card muted">
+              No verified early-bird windows right now. Orange alerts only appear when a deadline is confirmed with evidence, so a quiet panel means
+              nothing is confirmed, not that nothing exists. Here is what one will look like:
+            </p>
+            <EventCard item={{ ...placeholderItem({}, { ...phCtx, seed: "early-bird" }), reasons: ["[Placeholder] Example of a verified early-bird card. Real ones appear only with a confirmed deadline and evidence."] }} />
+          </div>
         ) : (
           <div className="space-y-3">{earlyBird.map((i) => <EventCard key={i.event.id} item={i} />)}</div>
         )}

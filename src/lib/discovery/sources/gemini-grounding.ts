@@ -26,6 +26,10 @@ export interface GeminiGroundingOptions {
   delayMs?: number;
   /** Extra search focus, used for targeted corroboration of one known event. */
   focus?: string;
+  /** "past" looks for shows that already happened (history); default is upcoming shows. */
+  mode?: "upcoming" | "past";
+  /** Earliest date (YYYY-MM-DD) to accept in past mode. */
+  sinceDate?: string;
   /** Epoch ms: stop starting new artists after this time (hosting time limits). */
   deadlineMs?: number;
   /** Called after each artist's search finished without throwing. */
@@ -83,6 +87,8 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
       const out: RawDiscovery[] = [];
       const today = ctx.today.toISOString().slice(0, 10);
       const cityHint = (opts.cities?.length ? opts.cities : ["Bengaluru"]).join(", ");
+      const past = opts.mode === "past";
+      const since = opts.sinceDate ?? "2025-01-01";
 
       for (const artist of ctx.artists) {
         if (opts.deadlineMs && Date.now() > opts.deadlineMs) break;
@@ -94,7 +100,7 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
             {
               parts: [
                 {
-                  text: `You MUST use Google Search before answering; do not answer from memory. ${opts.focus ? `Focus especially on finding a DIFFERENT website than the obvious one that lists this event: ${opts.focus}. ` : ""}Run several searches, e.g. "${artist.name} India tour 2026", "${artist.name} Bengaluru concert tickets", "${artist.name} live ${cityHint} 2026". Today is ${today}. Search the web for UPCOMING live concerts or festival appearances in INDIA (priority: ${cityHint}; but include every Indian city) for "${artist.name}" (also known as: ${names.join(", ")}). Only report events on pages dated today or later. For each event give the title, date as written, venue, city, which website listed it, and any ticket phase or deadline ONLY if a page states it. If you find nothing, say "no upcoming India events found". Never guess.`,
+                  text: `You MUST use Google Search before answering; do not answer from memory. ${opts.focus ? `Focus especially on finding a DIFFERENT website than the obvious one that lists this event: ${opts.focus}. ` : ""}${past ? `Run several searches, e.g. "${artist.name} India concert 2025", "${artist.name} live in India past shows", "${artist.name} concert review India". Today is ${today}. Search the web for live concerts or festival appearances in INDIA by "${artist.name}" (also known as: ${names.join(", ")}) that ALREADY TOOK PLACE between ${since} and ${today}. Only report events whose page states the exact date and city. For each event give the title, exact date, venue, city, and which website reported it. If you find nothing, say "no past India events found". Never guess.` : `Run several searches, e.g. "${artist.name} India tour 2026", "${artist.name} Bengaluru concert tickets", "${artist.name} live ${cityHint} 2026". Today is ${today}. Search the web for UPCOMING live concerts or festival appearances in INDIA (priority: ${cityHint}; but include every Indian city) for "${artist.name}" (also known as: ${names.join(", ")}). Only report events on pages dated today or later. For each event give the title, date as written, venue, city, which website listed it, and any ticket phase or deadline ONLY if a page states it. If you find nothing, say "no upcoming India events found". Never guess.`}`,
                 },
               ],
             },
@@ -117,7 +123,7 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
             .filter((c: Chunk) => c.uri);
         }
 
-        if (!chunks.length || /no upcoming india events found/i.test(notes) && notes.length < 400) {
+        if (!chunks.length || /no (upcoming |past )?india events found/i.test(notes) && notes.length < 400) {
           opts.onDebug?.(`${artist.name}: search sources ${chunks.length}, nothing to extract. notes: ${notes.slice(0, 140).replace(/\s+/g, " ")}`);
           // Only count the artist as searched when real search sources came back; an ungrounded
           // "nothing found" answer is retried on a later run.
@@ -132,7 +138,7 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
             {
               parts: [
                 {
-                  text: `Research notes about upcoming India concerts by "${artist.name}":\n"""\n${notes}\n"""\n\nPages the search used:\n${chunks.map((c, i) => `${i}: ${c.host}`).join("\n")}\n\nExtract ONLY events that appear in the notes, for ${artist.name}, dated ${today} or later. Return JSON: {"events":[{"artist":string,"title":string,"date_text":string|null,"date_iso":"YYYY-MM-DD"|"YYYY-MM"|null,"venue":string|null,"city":string|null,"source_index":number (index from the pages list that lists this event),"has_ticket_link":boolean,"excerpt":string|null (short phrase copied from the notes)}]}. Use null for anything the notes do not state. Do not invent anything. If none, {"events":[]}.`,
+                  text: `Research notes about ${past ? "past" : "upcoming"} India concerts by "${artist.name}":\n"""\n${notes}\n"""\n\nPages the search used:\n${chunks.map((c, i) => `${i}: ${c.host}`).join("\n")}\n\nExtract ONLY events that appear in the notes, for ${artist.name}, ${past ? `that took place between ${since} and ${today} (not today), each with a full YYYY-MM-DD date_iso`: `dated ${today} or later`}. Return JSON: {"events":[{"artist":string,"title":string,"date_text":string|null,"date_iso":"YYYY-MM-DD"|"YYYY-MM"|null,"venue":string|null,"city":string|null,"source_index":number (index from the pages list that lists this event),"has_ticket_link":boolean,"excerpt":string|null (short phrase copied from the notes)}]}. Use null for anything the notes do not state. Do not invent anything. If none, {"events":[]}.`,
                 },
               ],
             },
@@ -155,7 +161,13 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
             continue;
           }
           const d = parseDateField(e.date_iso);
-          if (isPast(d.startsAt, ctx.today)) {
+          if (past) {
+            // history: only events with an exact past day inside the window
+            if (d.precision !== "day" || !d.startsAt || d.startsAt >= ctx.today.toISOString() || d.bucket < since) {
+              droppedPast++;
+              continue;
+            }
+          } else if (isPast(d.startsAt, ctx.today)) {
             droppedPast++;
             continue;
           }

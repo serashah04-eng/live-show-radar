@@ -1,7 +1,7 @@
 // Behaviour tests for the personalization rules. Run: node --test scripts/feed.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildFeed, emptyStateHints, bookingLink } from "../src/lib/feed.ts";
+import { buildFeed, emptyStateHints, bookingLink, buildFacets, eventType, placeholderItem, isPlaceholder } from "../src/lib/feed.ts";
 import { registrableDomain, countIndependentDomains } from "../src/lib/discovery/corroboration-core.ts";
 
 const NOW = new Date("2026-10-12T00:00:00Z");
@@ -187,4 +187,62 @@ test("each pick changes the feed: follow one artist, then another", () => {
   const two = buildFeed(events, { ...base, allGenres: true, followedArtistIds: ["a1", "a3"] }, {}, NOW).map((i) => i.event.id).sort();
   assert.deepEqual(one, ["e1", "e2"]);
   assert.deepEqual(two, ["e1", "e2", "e4"]);
+});
+test("history view: only exact past shows, newest first, everything regardless of picks", () => {
+  const list = [
+    ev("up", A, "Mumbai", "2026-12-01"),
+    ev("old1", B, "Delhi", "2026-03-10"),
+    ev("old2", A, "Bengaluru", "2026-08-02"),
+    ev("nodate", A, "Pune", null),
+  ];
+  const prefs = { ...base, allGenres: true, followedArtistIds: ["a1"] }; // follows only Anuv Jain
+  const later = new Date("2026-10-12T00:00:00Z");
+  assert.deepEqual(ids(buildFeed(list, prefs, { when: "past" }, later)), ["old2", "old1"]); // newest first, includes an artist you do not follow
+  assert.ok(buildFeed(list, prefs, { when: "past" }, later).every((i) => i.isPast));
+  assert.deepEqual(ids(buildFeed(list, prefs, {}, later)).sort(), ["nodate", "up"]); // default view hides history; an undated show is not history
+});
+// ---------- extra filters, facets and placeholders ----------
+const withVenue = (id, artist, city, date, venue, title = "Show") => ev(id, artist, city, date, { venue, title });
+const rich = [
+  withVenue("r1", A, "Bengaluru", "2026-11-01", "Phoenix Arena", "Anuv Jain India Tour"),
+  withVenue("r2", A, "Mumbai", "2026-11-20", "NSCI Dome", "Sunburn Festival Day 1"),
+  withVenue("r3", B, "Mumbai", "2026-12-05", "Phoenix Arena", "Rooftop club night"),
+];
+const richPrefs = { ...base, allGenres: true, followedArtistIds: [] };
+
+test("new filters: venue, month, type and text search narrow the feed", () => {
+  assert.deepEqual(ids(buildFeed(rich, richPrefs, { venue: "phoenix arena" }, NOW)).sort(), ["r1", "r3"]);
+  assert.deepEqual(ids(buildFeed(rich, richPrefs, { month: "2026-11" }, NOW)).sort(), ["r1", "r2"]);
+  assert.deepEqual(ids(buildFeed(rich, richPrefs, { type: "Festival" }, NOW)), ["r2"]);
+  assert.deepEqual(ids(buildFeed(rich, richPrefs, { q: "local train mumbai" }, NOW)), ["r3"]);
+});
+
+test("event type is read only from the title and venue", () => {
+  assert.equal(eventType({ title: "Sunburn Festival Day 1", venue: null }), "Festival");
+  assert.equal(eventType({ title: "Anuv Jain India Tour", venue: null }), "Tour date");
+  assert.equal(eventType({ title: "Rooftop club night", venue: null }), "Club night");
+  assert.equal(eventType({ title: "Anuv Jain live", venue: "Hall" }), "Concert");
+});
+
+test("every facet option has at least one real show (no empty filter choices)", () => {
+  const view = buildFeed(rich, richPrefs, {}, NOW);
+  const f = buildFacets(view);
+  for (const group of Object.values(f)) for (const opt of group) assert.ok(opt.count >= 1);
+  const check = (key, filterKey) => { for (const opt of f[key]) assert.ok(buildFeed(rich, richPrefs, { [filterKey]: opt.value }, NOW).length >= 1, `${key}:${opt.value}`); };
+  check("venues", "venue"); check("months", "month"); check("types", "type"); check("cities", "city"); check("artists", "artistId");
+  assert.equal(f.venues.find((v) => v.value === "Phoenix Arena").count, 2);
+});
+
+test("a filter combination with no real match gets a clearly labelled placeholder, never stored", () => {
+  const none = buildFeed(rich, richPrefs, { venue: "NSCI Dome", month: "2026-12" }, NOW);
+  assert.equal(none.length, 0);
+  const ph = placeholderItem({ venue: "NSCI Dome", month: "2026-12" }, { artists: [A, B], prefs: richPrefs, now: NOW });
+  assert.ok(isPlaceholder(ph.event));
+  assert.match(ph.event.title, /^\[Placeholder\]/);
+  assert.equal(ph.event.is_sample, true);
+  assert.equal(ph.event.sources.length, 0); // no source means no booking link
+  assert.equal(bookingLink(ph.event), null);
+  assert.equal(ph.event.venue, "NSCI Dome");
+  assert.ok(ph.event.starts_at.startsWith("2026-12"));
+  assert.match(ph.reasons[0], /\[Placeholder\]/);
 });

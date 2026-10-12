@@ -21,6 +21,9 @@ export interface OnDemandOptions {
   ticketmasterKey?: string;
   cities?: string[]; // the user's priority cities, used to steer the search
   force?: boolean; // ignore the cooldown
+  /** "past" = history search: does not touch the artist's search schedule and skips Ticketmaster (upcoming only). */
+  mode?: "upcoming" | "past";
+  sinceDate?: string;
   budgetMs?: number;
 }
 
@@ -38,6 +41,18 @@ export async function searchArtistNow(db: SupabaseClient, artistId: string, o: O
   if (!row) return { artist: "unknown", status: "failed", found: 0, created: 0, error: "artist not found" };
   const prev = (row.last_searched_at as string | null) ?? null;
   const name = row.name as string;
+
+  if (o.mode === "past") {
+    const rec: ArtistRecord = { id: artistId, name, normalizedName: row.normalized_name as string, aliases: (row.artist_aliases as { normalized_alias: string }[]).map((a) => a.normalized_alias) };
+    let ok = false;
+    const r = await runAdapter(
+      db,
+      createGeminiGroundingAdapter({ apiKey: o.geminiApiKey, model: o.geminiModel, mode: "past", sinceDate: o.sinceDate, deadlineMs: Date.now() + (o.budgetMs ?? 170_000), onArtistDone: () => { ok = true; } }),
+      { artists: [rec], today: new Date() },
+      { geminiApiKey: o.geminiApiKey, geminiModel: o.geminiModel },
+    );
+    return { artist: name, status: ok ? "searched" : r.status === "failed" ? "failed" : "no_sources", found: r.found, created: r.created, error: r.error };
+  }
 
   if (!o.force && prev && Date.now() - Date.parse(prev) < SEARCH_COOLDOWN_MIN * 60_000) {
     return { artist: name, status: "skipped_recent", found: 0, created: 0, error: null };

@@ -57,6 +57,13 @@ export interface Filters {
    * "genres" = followed artists plus your saved genres, "all" = everything (discovery).
    */
   scope?: "mine" | "genres" | "all";
+  venue?: string;
+  month?: string; // YYYY-MM
+  type?: string; // see eventType()
+  bookable?: boolean; // only shows that have a booking link
+  q?: string; // free-text search over artist, title, venue, city
+  /** "upcoming" (default) or "past" (history of shows that already happened, newest first). */
+  when?: "upcoming" | "past";
   /** Old name for scope "all". */
   discover?: boolean;
 }
@@ -72,6 +79,8 @@ export interface FeedItem {
   event: FeedEvent;
   reasons: string[];
   priorityCity: boolean;
+  /** True when the show already happened (history). */
+  isPast: boolean;
   /** Position in the user's ordered city list (0 = top priority). 999 = not a priority city. */
   cityRank: number;
   /** Earliest VERIFIED early-bird/phase end still in the future (ms), else null. */
@@ -96,7 +105,11 @@ export function buildFeed(events: FeedEvent[], prefs: Prefs, filters: Filters, n
 
   for (const e of events) {
     if (e.verification_status === "rejected") continue;
-    if (e.starts_at && new Date(e.starts_at).getTime() < now.getTime() - 24 * 3600 * 1000) continue;
+    const when = filters.when ?? "upcoming";
+    const startsMs = e.starts_at ? new Date(e.starts_at).getTime() : null;
+    const old = startsMs !== null && startsMs < now.getTime() - 24 * 3600 * 1000;
+    if (when === "upcoming" && old) continue;
+    if (when === "past" && !old) continue; // history needs an exact past date
     if (statusFilter === "all" && (e.verification_status === "cancelled" || e.verification_status === "stale")) {
       // hidden by default; still stored and visible on the event page
       continue;
@@ -111,7 +124,7 @@ export function buildFeed(events: FeedEvent[], prefs: Prefs, filters: Filters, n
     const hasFollows = prefs.followedArtistIds.length > 0;
     const genreMatchLoose = (prefs.allGenres && !hasFollows) || genreHits.size > 0;
     const genreMatchStrict = prefs.allGenres || genreHits.size > 0;
-    const scope: FeedScope = filters.scope ?? (filters.discover ? "all" : defaultScope(prefs));
+    const scope: FeedScope = filters.scope ?? (filters.discover || when === "past" ? "all" : defaultScope(prefs));
     const eligible =
       scope === "all" ||
       (prefs.strictGenreMode ? genreMatchStrict : scope === "mine" ? followed.length > 0 : followed.length > 0 || genreMatchLoose);
@@ -132,6 +145,14 @@ export function buildFeed(events: FeedEvent[], prefs: Prefs, filters: Filters, n
     if (filters.to && e.starts_at && e.starts_at.slice(0, 10) > filters.to) continue;
     if ((filters.from || filters.to) && !e.starts_at) continue; // unknown date can't satisfy a date filter
     if (filters.ticketStatus && e.ticket_status !== filters.ticketStatus) continue;
+    if (filters.venue && lc(e.venue) !== lc(filters.venue)) continue;
+    if (filters.month && (e.starts_at ?? "").slice(0, 7) !== filters.month) continue;
+    if (filters.type && eventType(e) !== filters.type) continue;
+    if (filters.bookable && !bookingLink(e)) continue;
+    if (filters.q) {
+      const hay = lc([e.title, e.venue, e.city, ...e.artists.map((a) => a.name)].join(" "));
+      if (!lc(filters.q).split(/\s+/).filter(Boolean).every((w) => hay.includes(w))) continue;
+    }
     if (statusFilter === "verified" && e.verification_status !== "verified") continue;
     if (statusFilter === "corroborated" && !(e.corroborated && e.verification_status === "pending_verification")) continue;
     if (statusFilter === "pending" && !(e.verification_status === "pending_verification" && !e.corroborated)) continue;
@@ -145,12 +166,14 @@ export function buildFeed(events: FeedEvent[], prefs: Prefs, filters: Filters, n
     else if (e.city) reasons.push(`Other city: ${e.city}`);
     const dl = earliestVerifiedDeadline(e);
     const deadline = dl !== null && dl > now.getTime() ? dl : null;
-    out.push({ event: e, reasons, priorityCity, cityRank, deadline, urgent: deadline !== null && deadline - now.getTime() < 72 * 3600 * 1000 });
+    out.push({ event: e, reasons, priorityCity, cityRank, isPast: when === "past", deadline, urgent: deadline !== null && deadline - now.getTime() < 72 * 3600 * 1000 });
   }
 
   const sort = filters.sort ?? "relevance";
+  const history = (filters.when ?? "upcoming") === "past";
   const t = (e: FeedEvent) => (e.starts_at ? new Date(e.starts_at).getTime() : Number.MAX_SAFE_INTEGER);
   out.sort((a, b) => {
+    if (history && (sort === "relevance" || sort === "date")) return t(b.event) - t(a.event); // newest past show first
     if (sort === "discovered") return +new Date(b.event.discovered_at) - +new Date(a.event.discovered_at);
     if (sort === "deadline") {
       const da = earliestVerifiedDeadline(a.event) ?? Number.MAX_SAFE_INTEGER;
@@ -210,3 +233,100 @@ const score = (host: string) => {
   if (/instagram|facebook|twitter|x\.com|youtube/.test(host)) return 2;
   return 1;
 };
+// ---------- event type, facets (filter options that always have results) and placeholders ----------
+
+export const EVENT_TYPES = ["Concert", "Festival", "Tour date", "Club night"] as const;
+
+/** Best-effort type from the title and venue only. Never claims more than the text says. */
+export function eventType(e: Pick<FeedEvent, "title" | "venue">): (typeof EVENT_TYPES)[number] {
+  const s = `${e.title} ${e.venue ?? ""}`.toLowerCase();
+  if (/(festival|\bfest\b|lollapalooza|sunburn|nh7|weekender|carnival|supersonic|\bday [12]\b)/.test(s)) return "Festival";
+  if (/(\btour\b|world tour|india tour|on tour)/.test(s)) return "Tour date";
+  if (/(club|\bnight\b|party|\bdj set\b|afterparty|rave|\bbar\b)/.test(s)) return "Club night";
+  return "Concert";
+}
+
+export interface FacetOption {
+  value: string;
+  label: string;
+  count: number;
+}
+export interface Facets {
+  artists: FacetOption[];
+  venues: FacetOption[];
+  cities: FacetOption[];
+  months: FacetOption[];
+  types: FacetOption[];
+  genres: FacetOption[];
+  ticketStatuses: FacetOption[];
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthLabel = (ym: string) => `${MONTHS[Number(ym.slice(5, 7)) - 1] ?? ym} ${ym.slice(0, 4)}`;
+
+/**
+ * Filter options built ONLY from the shows currently in view, each with its count. Because every option
+ * comes from a real show, picking any single option can never give an empty list.
+ */
+export function buildFacets(items: FeedItem[], genreNames: Map<string, string> = new Map()): Facets {
+  const tally = (pick: (i: FeedItem) => { value: string; label: string }[]) => {
+    const m = new Map<string, FacetOption>();
+    for (const it of items)
+      for (const { value, label } of pick(it)) {
+        const cur = m.get(value);
+        if (cur) cur.count++;
+        else m.set(value, { value, label, count: 1 });
+      }
+    return [...m.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  };
+  return {
+    artists: tally((i) => i.event.artists.map((a) => ({ value: a.id, label: a.name }))),
+    venues: tally((i) => (i.event.venue ? [{ value: i.event.venue, label: i.event.venue }] : [])),
+    cities: tally((i) => (i.event.city ? [{ value: i.event.city, label: i.event.city }] : [])),
+    months: tally((i) => (i.event.starts_at ? [{ value: i.event.starts_at.slice(0, 7), label: monthLabel(i.event.starts_at.slice(0, 7)) }] : []))
+      .sort((a, b) => a.value.localeCompare(b.value)),
+    types: tally((i) => [{ value: eventType(i.event), label: eventType(i.event) }]),
+    genres: tally((i) => [...new Set(i.event.artists.flatMap((a) => a.genreSlugs))].map((g) => ({ value: g, label: genreNames.get(g) ?? g }))),
+    ticketStatuses: tally((i) => [{ value: i.event.ticket_status, label: i.event.ticket_status.replace(/_/g, " ") }]),
+  };
+}
+
+export const PLACEHOLDER_NOTE = "[Placeholder] Nothing real matches this yet. This is a sample card, not a real show.";
+export const isPlaceholder = (e: Pick<FeedEvent, "id">) => e.id.startsWith("placeholder:");
+
+/**
+ * A clearly labelled sample card so a view is never blank. It lives only in memory (never stored), is marked
+ * is_sample (so it never triggers an alert), has no sources and therefore no booking link.
+ */
+export function placeholderItem(
+  filters: Filters,
+  ctx: { artists: FeedArtist[]; prefs: Prefs; now: Date; seed?: string },
+): FeedItem {
+  const artist = ctx.artists.find((a) => a.id === filters.artistId) ?? ctx.artists.find((a) => ctx.prefs.followedArtistIds.includes(a.id)) ?? ctx.artists[0] ?? { id: "sample", name: "Sample Artist", genreSlugs: [] };
+  const city = filters.city ?? ctx.prefs.cities[0] ?? "Bengaluru";
+  const past = (filters.when ?? "upcoming") === "past";
+  const day = 24 * 3600 * 1000;
+  const when = filters.month ? new Date(`${filters.month}-15T12:00:00Z`) : new Date(ctx.now.getTime() + (past ? -45 : 45) * day);
+  const type = filters.type ?? "Concert";
+  const event: FeedEvent = {
+    id: `placeholder:${ctx.seed ?? [artist.id, city, filters.venue, filters.month, filters.type, filters.when].join("|")}`,
+    title: `[Placeholder] ${type} with ${artist.name}`,
+    starts_at: when.toISOString(),
+    date_text: null,
+    date_precision: "day",
+    venue: filters.venue ?? "[Placeholder venue]",
+    city,
+    ticket_url: null,
+    ticket_status: "unknown",
+    verification_status: "pending_verification",
+    corroborated: false,
+    has_conflict: false,
+    is_sample: true,
+    last_checked_at: null,
+    discovered_at: ctx.now.toISOString(),
+    artists: [artist],
+    sources: [],
+    phases: [],
+  };
+  return { event, reasons: [PLACEHOLDER_NOTE], priorityCity: false, cityRank: 999, isPast: past, deadline: null, urgent: false };
+}

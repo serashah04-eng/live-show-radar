@@ -1,0 +1,112 @@
+# CONTEXT_MEMORY.md — read this first (for any person or any Claude continuing this build)
+
+**Purpose:** a single file that lets someone with zero history continue the project. It says what the product is, what state it is in, what was decided and why, what broke before, what is left, and a dated/timed log of every change (why, what, files).
+
+**Rules for whoever edits the project (human or AI):**
+1. After EVERY change: run checks, `git commit`, `git push origin main`, and append an entry to the change log below (`node scripts/log-change.mjs "why" "what" "files"` does it with a real timestamp).
+2. Keep GitHub and local identical. Never leave work only on this computer.
+3. Never put secrets in this file or in git. Env var NAMES only.
+4. Update the "Current state" and "TODO" sections when they change.
+
+---
+
+## 1. The product
+
+**FrontRow** (formerly "Live Show Radar"; the name lives in `src/lib/brand.ts`). A concert-discovery and alert app for India, Bengaluru first, built for the MESA C4 "AI and its Applications" final exam (problem statement: *Live Show Radar*, user "Karan" follows ~60 artists and misses shows and early-bird tickets). Rules from the exam: use live external data, **all AI must be Gemini Flash (not Claude API)**, deploy on Vercel, submit a public URL + GitHub repo + Components Map.
+
+- **Repo (public, keep public):** https://github.com/serashah04-eng/live-show-radar (branch `main`)
+- **Live site (Vercel, project `live-show-radar`, team sera-f34b, Hobby):** https://live-show-radar-gamma.vercel.app
+- **Database:** Supabase project `live-show-radar` (ref `tvaoqaddqoxrrgpcswsn`, ap-northeast-1, free plan)
+- **Owner accounts:** GitHub `serashah04-eng`; Vercel `sera-f34b`; Supabase org "serashah04-eng's Org"; Telegram bot `@liveshowradarbot`.
+- **Stack:** Next.js 16 (App Router, Turbopack, **Cache Components on**), TypeScript, Tailwind v4, Supabase (Postgres/Auth/RLS), Gemini Flash (`gemini-flash-latest`) with Google Search grounding, Ticketmaster Discovery API, Telegram Bot API, Resend, GSAP, Vercel + GitHub Actions.
+
+## 2. Hard rules the product follows (do not break)
+
+- **Never fabricate** concerts, dates, venues, prices, ticket links, deadlines or API coverage. Placeholders are allowed ONLY when clearly labelled `[Placeholder]`, marked `is_sample`, never stored, never alerted, no booking link.
+- **Verification tiers:** `Unconfirmed` (found by search) → `Reported by 2+ sites` (corroborated, 2 independent domains, no conflict; NOT verified) → `Verified` (official API record, or owner review with an evidence URL + quoted text). A verified ticket phase must have evidence (DB constraint). Orange "early bird" urgency only for verified deadlines.
+- **No scraping** of BookMyShow / District / SkillBox / Bandsintown. Pages appear only as cited results from Google Search grounding, or as user-submitted links (never fetched).
+- Gemini never invents events: search step is grounded in prose; extraction step must cite one of the pages the search used (index), and the stored source URL is that resolved page.
+- Secrets stay server-side. Repo is public: scan before every push (`node --env-file=.env.local scripts/scan-secrets.mjs`).
+- Alerts: Telegram + Resend email, independent channels, dedupe key per alert+channel+recipient, max 3 attempts with backoff, failures visible, never marked sent unless the provider accepted.
+
+## 3. Current state (update this section)
+
+**Last updated:** 2026-10-12 18:10 IST
+
+Working and tested:
+- Auth (Supabase) + RLS on all 16+ tables; **TRIAL MODE on by default** (`TRIAL_MODE` != "false"): any email + any password signs in (account auto-created, password ignored, sign-up page says so); nobody is admin in trial mode (Review/Status hidden on the public site). Local owner mode (`LOCAL_OWNER_MODE=true`, dev only, never on Vercel) skips login and is admin; it uses the SAME database, so review events locally.
+- Discovery: Gemini grounded search (upcoming + **past/history mode**), Ticketmaster adapter (returns 0 India events), manual "Add event by link", dedupe, artist matching, corroboration.
+- Feed with filters: when (upcoming/past), scope (My artists / + my genres / Everything), artist, venue, event type, month, city, genre, ticket status, verification, date range, booking-link-only, text search, sort. Every dropdown lists only values that have real shows (with counts); an empty combination shows a labelled `[Placeholder]` card.
+- City priority is an ordered list (#1 listed first, Bengaluru default). "Book show" button on every upcoming event (stored ticket URL, else best listing page, labelled honestly).
+- 176-artist catalogue, 33 genres, 115 cities; pick-your-scene wizard; one-tap artist tiles; Find shows (per-artist on-demand search) and background search on follow.
+- Notifications engine (Telegram tested; email NOT yet tested), in-app early-bird pop-up (not yet seen live), cron endpoints `/api/cron/discover` and `/api/cron/notify` (Bearer `CRON_SECRET`), `vercel.json` daily cron, optional GitHub Actions 30-min workflow (needs repo secrets `SITE_URL`, `CRON_SECRET`).
+- UI: lime `#c4d600` on near-black, inspired by voltlites.com (UX effects re-implemented with GSAP ScrollTrigger; placeholder Unsplash photos; CSS percent loader; marquee; numbered rows).
+- Tests: `node --test scripts/*.test.mjs` (63 unit tests), DB checks, secret scan.
+
+Data in DB (2026-10-12 ~18:00): 35 events (26 past, 9 upcoming), 48 source links. Past shows found for Anuv Jain, Arijit Singh, AP Dhillon, Prateek Kuhad. **Gemini free quota hit HTTP 429 during the bulk fill**, so most artists are still unsearched.
+
+## 4. TODO (priority order)
+
+1. **Wait for / fix Gemini quota** (429 RESOURCE_EXHAUSTED): re-run `node --env-file=.env.local scripts/fill-data.mjs --parallel=2` later (daily/minute limits reset), or use a second key / paid tier. Use `--parallel=2` to avoid rate limits.
+2. Supabase Auth → URL Configuration: set **Site URL** to the Vercel domain and redirect `https://live-show-radar-gamma.vercel.app/**` (only matters when `TRIAL_MODE=false`).
+3. Test email delivery: set `ALERT_TO_EMAIL` (the Resend account email; free test sender `onboarding@resend.dev` only delivers to that address) then run `node --env-file=.env.local scripts/test-notify-live.mjs --email`.
+4. Check `APP_BASE_URL` on Vercel = `https://live-show-radar-gamma.vercel.app` (it already exists; value unseen).
+5. Optional 30-minute schedule: add GitHub repo secrets `SITE_URL` and `CRON_SECRET` (Vercel Hobby cron is daily only).
+6. Verify a real early-bird flow end to end (create a verified phase via /review locally, see pop-up + alerts), then update `docs/NINE-CHECKLIST.md` scores and regenerate the Components Map (`node scripts/build-components-map.mjs`, PNG via headless Chrome) — the exam needs the map, public URL, repo link.
+7. Re-check the redesigned dashboard at phone width; consider a real photo set.
+8. Before any real launch: set `TRIAL_MODE=false`.
+
+## 5. How to run
+
+```bash
+npm install
+cp .env.example .env.local        # fill values (never commit)
+npm run dev                        # add LOCAL_OWNER_MODE=true to .env.local to skip login locally
+node --test scripts/feed.test.mjs scripts/notify.test.mjs scripts/discovery.test.mjs scripts/catalog.test.mjs
+node --env-file=.env.local scripts/test-db.mjs
+npm run lint && npx tsc --noEmit && npm run build
+```
+Env var NAMES: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, GEMINI_API_KEY, GEMINI_MODEL, TICKETMASTER_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, RESEND_API_KEY, ALERT_FROM_EMAIL (`onboarding@resend.dev`), ALERT_TO_EMAIL, CRON_SECRET, ADMIN_EMAILS, APP_BASE_URL, LOCAL_OWNER_MODE, TRIAL_MODE, NOTIFICATIONS_ENABLED, AUTO_DISPATCH_ON_REVIEW, AUTO_SEARCH_ON_FOLLOW, DISCOVERY_ARTISTS_PER_RUN, DISCOVERY_CORROBORATE_PER_RUN. Values live in `.env.local` (git-ignored) and in Vercel → Settings → Environment Variables. `.env.local` is NOT in GitHub: a new machine needs the owner to supply the keys.
+
+DB migrations are in `supabase/migrations/` (applied by pasting into the Supabase SQL editor; there is no Supabase CLI link): init, corroboration, local_owner_profiles (user FKs point at `profiles`), notifications, artist_rotation.
+
+## 6. Gotchas learned the hard way
+
+- **Tailwind v4: `@apply` cannot use a custom class** (e.g. `@apply mono`) — it breaks the whole stylesheet and the page does not hydrate. Inline the utilities or write plain CSS.
+- **Never run `npm run build` (or delete `.next`) while `next dev` is running** — it corrupts the dev server. Stop the dev server first. After deleting `.next`, `tsc` complains `LayoutProps` is missing until a build regenerates types.
+- **Hidden/background browser tabs never fire `requestAnimationFrame`**, so React's streamed Suspense content is never revealed and the page looks stuck on "Loading…". It is a test-environment artifact; front the tab.
+- Next 16 + Cache Components: anything reading cookies / `searchParams` / `usePathname()` must be inside `<Suspense>`; `middleware` is `proxy.ts`; read `node_modules/next/dist/docs/` before using Next APIs.
+- `gemini-2.5-flash` is closed to new accounts (404) although it is in the model list; use `gemini-flash-latest`. The grounded call returns no grounding metadata if you demand JSON-only in the same call; the code does search (prose) then extraction (JSON) in two calls and retries when no sources come back.
+- Gemini free tier throttles hard: 3–4 parallel grounded searches work for ~2 minutes then 429.
+- Supabase "Confirm email" + redirect URL: localhost:3000 may belong to another project; dev ports are auto-assigned.
+- PowerShell: `Resolve-Path` treats `[id]` in `src/app/events/[id]` as a wildcard — use the Edit tool. `Set-Content -Encoding utf8` adds a BOM that breaks JSON/ts parsing; write with UTF8 no-BOM.
+- Vercel Hobby cron = once a day. Vercel sends `Authorization: Bearer $CRON_SECRET` to cron paths automatically.
+- Windows: LF→CRLF warnings on commit are harmless.
+- Ticketmaster has essentially no India events for these artists.
+- Computer-use/browser tooling cannot type secrets into web forms by policy; secrets must be pasted by the owner.
+
+## 7. Change log (newest at the bottom; times are IST; times before 18:00 on 2026-10-12 are reconstructed approximations, later ones are real)
+
+Format: **date time — title** · WHY · WHAT · FILES
+
+- **2026-10-12 ~13:15 — Stage 1 audit** · Needed a baseline before building. · Found an empty project folder, GitHub repo `live-show-radar` (public), empty Supabase project, Vercel account with only another project; wrote nine-checklist + risk register. · (report only)
+- **~13:40 — Env + git setup** · Secrets must never reach the public repo. · Created `.env.local`, `.gitignore`, `.env.example`; `git init`, remote `origin`. · `.gitignore`, `.env.example`
+- **~14:20 — Integrations verified** · Prove each service works before building on it. · Supabase REST 200; Ticketmaster key OK but **0 India events**; Telegram `getMe` OK, chat id found via Telegram Web (user id), test message delivered; Resend key valid; Gemini needed a new key; `CRON_SECRET` generated. · `scripts/check-integrations.mjs`
+- **~14:45 — Scaffold** · Foundation. · Next.js 16 scaffold copied in (BOM bug fixed), `@supabase/supabase-js`. · `package.json`, `src/**`
+- **~15:00 — Database (migration 1)** · Persistent, secure data model. · 16 tables, RLS, constraints (verified phase needs evidence), seed 5 artists/12 genres. · `supabase/migrations/20261012000000_init.sql`, `scripts/test-db.mjs`
+- **~15:30 — Discovery engine** · Find real shows without scraping. · Gemini grounded-search adapter (2-step, cites real pages), Ticketmaster adapter, manual link adapter, matching, dedupe, persistence; first live run found Anuv Jain/WCMT shows. · `src/lib/discovery/**`, `scripts/run-discovery.mjs`, tests
+- **~16:00 — Corroboration + app UI (migration 2)** · Hybrid verification so users see "reported by 2+ sites". · `corroborated` flag, independent-domain check, conflict only when venues share no word; Festival After Dark UI, auth, feed, artists, settings, review, status pages. · `src/app/**`, `src/lib/feed.ts`, `supabase/migrations/…corroboration.sql`
+- **~16:30 — Local owner mode (migration 3)** · Owner wanted to test without login. · FKs repointed to `profiles`, local owner profile, dev-only bypass (disabled in production/Vercel). · `src/lib/local-mode.ts`, `…local_owner_profiles.sql`
+- **~16:45 — Notifications (migration 4)** · Alerts that never duplicate or lie. · Planner, dispatcher (reserve→send→retry), Telegram/Resend providers, in-app early-bird pop-up, secured cron endpoints; Telegram TEST delivered, failure/retry tested. · `src/lib/notify/**`, `src/app/api/cron/notify`, `…notifications.sql`
+- **~17:10 — Scheduler + docs (migration 5)** · Hosting-limit-safe scheduling. · Rotating discovery cycle, atomic artist claims, GitHub Actions workflow, README, nine-checklist, components map SVG/PNG, secret scan. · `src/lib/discovery/cycle.ts`, `.github/workflows/scheduled-discovery.yml`, `docs/**`
+- **~17:30 — First push to GitHub** · Owner approved publishing. · Committed 98 files, merged GitHub's initial commit, pushed. · all
+- **~17:45 — FrontRow rename + tap-to-choose UI** · Owner wanted easy picking and a better name. · 176-artist catalogue, 33 genres, 115 cities, wizard, artist tiles, city picker, MENU overlay, lime theme. · `src/lib/catalog/**`, `src/components/ArtistPicker.tsx`, `CityPicker.tsx`, `src/app/start/**`
+- **~17:50 — Vercel project created by owner** · Public deployment. · Project `live-show-radar` deployed from main; verified login enforced, cron secured, DB connected. · `vercel.json` (daily cron added)
+- **~17:55 — Feed follows your picks + on-demand search + city order + Book show** · Owner saw only Anuv Jain/WCMT. · Default view = My artists; background search on follow; Find shows button; ordered city priority; Book show link. · `src/lib/feed.ts`, `src/lib/discovery/on-demand.ts`, `src/components/BookButton.tsx`, `FindShows.tsx`
+- **~18:00 — GSAP motion + photo hero** · Owner asked for the reference site's UX. · GSAP ScrollTrigger effects, Unsplash placeholder photos, statement/numbered rows/footer. · `src/components/Motion.tsx`, `PhotoTile.tsx`, `src/lib/photos.ts`
+- **~18:00 — Trial mode** · Owner wanted any email/password to work for the trial. · Passwordless session via admin magic-link; sign-up page banner; nobody admin in trial. · `src/app/login/**`, `src/lib/trial.ts`, `src/lib/auth.ts`
+- **2026-10-12 18:10 — History view, more filters, placeholders, data fill** · Owner: page looked empty, wanted history + filters (venue, artist, type, month…) that are never empty. · Past-shows mode in the grounded search; `when=past` feed; filters venue/month/type/search/booking-link; facets with counts; `[Placeholder]` cards for empty combos and empty dashboard sections; bulk fill script found 26 real past shows before Gemini quota 429. · `src/lib/feed.ts`, `src/app/feed/page.tsx`, `src/app/page.tsx`, `src/components/EventCard.tsx`, `src/lib/discovery/sources/gemini-grounding.ts`, `on-demand.ts`, `scripts/fill-data.mjs`, `scripts/feed.test.mjs`
+- **2026-10-12 18:10 — Context memory file + push policy** · Owner may run out of credits and wants another Claude to continue. · Created this file and `scripts/log-change.mjs`; policy: push to GitHub after every change. · `CONTEXT_MEMORY.md`, `scripts/log-change.mjs`
+
+<!-- new entries are appended below by scripts/log-change.mjs -->
+- **2026-10-12 18:05 IST — Pushed history/filters/placeholders/context file to GitHub** · Owner required GitHub and local to stay identical and a handover file for another Claude · Committed and pushed all pending work; production build, tsc, lint, 63 unit tests, DB checks and secret scan (122 files) all passed first · `CONTEXT_MEMORY.md, scripts/log-change.mjs, src/lib/feed.ts, src/app/feed/page.tsx, src/app/page.tsx, src/components/EventCard.tsx, scripts/fill-data.mjs`
