@@ -23,7 +23,7 @@ export function MenuOverlay({ links, signOutAction, email }: { links: MenuLink[]
 
   return (
     <>
-      <button type="button" className="btn-ghost min-h-10 px-5 tracking-widest" onClick={() => setOpen(true)} aria-haspopup="dialog">
+      <button type="button" className="btn-ghost min-h-8 px-5 tracking-widest" onClick={() => setOpen(true)} aria-haspopup="dialog">
         MENU
       </button>
       <dialog
@@ -36,7 +36,7 @@ export function MenuOverlay({ links, signOutAction, email }: { links: MenuLink[]
         <div className="wrap flex h-full flex-col py-5">
           <div className="flex items-center justify-between">
             <span className="mono">Menu</span>
-            <button type="button" className="btn-ghost min-h-10 px-5" onClick={() => setOpen(false)} autoFocus>Close</button>
+            <button type="button" className="btn-ghost min-h-8 px-5" onClick={() => setOpen(false)} autoFocus>Close</button>
           </div>
           <nav aria-label="Menu links" className="mt-6 flex-1 overflow-y-auto">
             <ul>

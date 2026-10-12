@@ -98,12 +98,12 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
           </div>
           <div className="rounded-xl border border-line p-3">
             <p className="label !mb-2">2 · Location</p>
-            {where ? <a href={where.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-12 px-6">Open in Maps</a> : <span className="badge-pending">Location not announced</span>}
+            {where ? <a href={where.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-9 px-4">Open in Maps</a> : <span className="badge-pending">Location not announced</span>}
             <p className="mt-2 text-xs muted">{where ? where.label : "Neither venue nor city is stated."}</p>
           </div>
           <div className="rounded-xl border border-line p-3">
             <p className="label !mb-2">3 · Where we found it</p>
-            {article ? <a href={article.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-12 px-6">Read the article</a> : <span className="badge-pending">No article link</span>}
+            {article ? <a href={article.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-9 px-4">Read the article</a> : <span className="badge-pending">No article link</span>}
             <p className="mt-2 text-xs muted">{article ? `${article.host}: ${article.note}` : "Only a ticketing page is known."}</p>
           </div>
         </div>
@@ -165,9 +165,9 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
         <h2 id="nr" className="mb-3 text-2xl">News and reviews</h2>
         <p className="mb-3 text-sm muted">These open a search for you. They are searches, not claims: FrontRow has not read the results.</p>
         <div className="flex flex-wrap gap-2">
-          <a className="btn-ghost min-h-10 px-4" target="_blank" rel="noopener noreferrer" href={`https://news.google.com/search?q=${q(firstArtist + " India concert")}`}>Latest news</a>
-          <a className="btn-ghost min-h-10 px-4" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/search?q=${q(firstArtist + " live India concert review")}`}>Concert reviews</a>
-          <a className="btn-ghost min-h-10 px-4" target="_blank" rel="noopener noreferrer" href={`https://www.youtube.com/results?search_query=${q(firstArtist + " live India")}`}>Watch on YouTube</a>
+          <a className="btn-ghost min-h-8 px-3.5" target="_blank" rel="noopener noreferrer" href={`https://news.google.com/search?q=${q(firstArtist + " India concert")}`}>Latest news</a>
+          <a className="btn-ghost min-h-8 px-3.5" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/search?q=${q(firstArtist + " live India concert review")}`}>Concert reviews</a>
+          <a className="btn-ghost min-h-8 px-3.5" target="_blank" rel="noopener noreferrer" href={`https://www.youtube.com/results?search_query=${q(firstArtist + " live India")}`}>Watch on YouTube</a>
         </div>
       </section>
     </article>

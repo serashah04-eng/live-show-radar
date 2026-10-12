@@ -59,9 +59,9 @@ export function EventCard({ item }: { item: FeedItem }) {
           ) : (
             <>
               {!item.isPast && <BookButton link={link} />}
-              {where && <a href={where.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-10 px-4">Location</a>}
-              {src && <a href={src.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-10 px-4" title={src.note}>{item.isPast ? "Read the source" : "Source"}: {src.host}{src.credibility === "unvetted" ? " (unverified)" : ""}</a>}
-              <Link href={`/events/${e.id}`} className="btn-ghost min-h-10 px-4">Details</Link>
+              {where && <a href={where.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-8 px-3.5">Location</a>}
+              {src && <a href={src.url} target="_blank" rel="noopener noreferrer" className="btn-ghost min-h-8 px-3.5" title={src.note}>{item.isPast ? "Read the source" : "Source"}: {src.host}{src.credibility === "unvetted" ? " (unverified)" : ""}</a>}
+              <Link href={`/events/${e.id}`} className="btn-ghost min-h-8 px-3.5">Details</Link>
               <span className="text-xs muted">
                 {e.sources.length} source{e.sources.length === 1 ? "" : "s"} · checked {timeAgo(e.last_checked_at)}
               </span>

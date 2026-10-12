@@ -18,7 +18,7 @@ export function BookButton({ link, large = false }: { link: BookingLink | null; 
         href={link.url}
         target="_blank"
         rel="noopener noreferrer"
-        className={`btn-primary arrow ${large ? "min-h-12 px-7 text-base" : "min-h-10"}`}
+        className={`btn-primary arrow ${large ? "min-h-9 px-4 text-sm" : "min-h-8"}`}
       >
         Book show
         <span className="sr-only"> (opens {link.host} in a new tab)</span>
