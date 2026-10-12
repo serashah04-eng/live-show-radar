@@ -3,14 +3,15 @@ import { Anton, Space_Grotesk } from "next/font/google";
 import { Suspense } from "react";
 import { EarlyBirdAlert } from "@/components/EarlyBirdAlert";
 import { Nav } from "@/components/Nav";
+import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
 const display = Anton({ variable: "--font-display", subsets: ["latin"], weight: "400" });
 const body = Space_Grotesk({ variable: "--font-body", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Live Show Radar",
-  description: "Indie-first concert discovery and ticket alerts for India. Know before the early-bird window closes.",
+  title: `${APP_NAME}: ${APP_TAGLINE}`,
+  description: APP_DESCRIPTION,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <EarlyBirdAlert />
         </Suspense>
         <footer className="wrap border-t border-line py-6 text-xs muted">
-          Live Show Radar informs; you decide what to attend and buy. Unverified listings are labelled and may be wrong.
+          {APP_NAME} informs; you decide what to attend and buy. Unverified listings are labelled and may be wrong.
         </footer>
       </body>
     </html>

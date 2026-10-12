@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
-import { INDIAN_CITIES } from "@/lib/format";
+import { ALL_INDIA_CITIES } from "@/lib/catalog/cities";
 import { createClient } from "@/lib/supabase/server";
 
 export interface SettingsState {
@@ -21,11 +21,7 @@ export async function saveSettings(_prev: SettingsState, formData: FormData): Pr
   const showOther = bool(formData, "show_other_cities");
   const genreIds = formData.getAll("genres").map(Number).filter((n) => Number.isInteger(n));
 
-  const custom = String(formData.get("custom_cities") ?? "")
-    .split(",")
-    .map((c) => c.trim().replace(/\s+/g, " "))
-    .filter((c) => c.length >= 2 && c.length <= 40);
-  const cities = [...new Set([...formData.getAll("cities").map(String).filter((c) => INDIAN_CITIES.includes(c)), ...custom])];
+  const cities = [...new Set(formData.getAll("cities").map(String).filter((c) => ALL_INDIA_CITIES.includes(c)))];
   if (cities.length === 0) return { error: "Choose at least one priority city (Bengaluru is the default)." };
 
   const chatId = String(formData.get("telegram_chat_id") ?? "").trim();

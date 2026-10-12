@@ -7,6 +7,7 @@
   --surface-2: #262c3d;
   --cobalt: #315cff;
   --cobalt-soft: #8aa3ff; /* lighter cobalt: readable as text on charcoal */
+  --lime: #c6d800; /* primary action + selected state */
   --orange: #ff7a30;
   --offwhite: #f4f5f7;
   --slate: #70798b;
@@ -20,6 +21,7 @@
   --color-surface2: var(--surface-2);
   --color-cobalt: var(--cobalt);
   --color-cobalt-soft: var(--cobalt-soft);
+  --color-lime: var(--lime);
   --color-orange: var(--orange);
   --color-offwhite: var(--offwhite);
   --color-slate: var(--slate);
@@ -63,9 +65,9 @@ h1, h2, h3, .display {
   .btn {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
   }
-  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-cobalt text-white hover:bg-[#4a70ff]; }
-  .btn-ghost { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-line bg-transparent text-offwhite hover:bg-surface2; }
-  .btn-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-orange/50 bg-transparent text-orange hover:bg-orange/10; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-lime text-charcoal hover:bg-[#d8ea1a]; }
+  .btn-ghost { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-line bg-transparent text-offwhite hover:bg-surface2; }
+  .btn-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-orange/50 bg-transparent text-orange hover:bg-orange/10; }
 
   .field {
     @apply min-h-11 w-full rounded-xl border border-line bg-charcoal px-3 text-sm text-offwhite placeholder:text-slate;
@@ -75,7 +77,7 @@ h1, h2, h3, .display {
   .chip {
     @apply inline-flex min-h-9 cursor-pointer items-center rounded-full border border-line px-3 text-sm transition-colors;
   }
-  .chip:has(input:checked) { @apply border-cobalt bg-cobalt text-white; }
+  .chip:has(input:checked) { @apply border-lime bg-lime font-semibold text-charcoal; }
   .chip:has(input:focus-visible) { outline: 3px solid var(--orange); outline-offset: 2px; }
   .chip input { @apply sr-only; }
 
@@ -115,4 +117,30 @@ h1, h2, h3, .display {
 @media (prefers-reduced-motion: no-preference) {
   .rise { animation: rise 0.35s ease-out both; }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+/* ---- bento tiles, wordmark and pixel-grid motif ---- */
+@layer components {
+  .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; @apply text-[11px] uppercase tracking-[0.14em]; color: var(--slate-text); }
+  .wordmark { font-family: var(--font-display), Impact, sans-serif; color: var(--lime); line-height: 0.9; letter-spacing: -0.01em; text-transform: uppercase; }
+  .mosaic {
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .bento { @apply grid gap-px overflow-hidden rounded-2xl border border-line bg-line; }
+  .bento > * { background: var(--charcoal); }
+  .tile {
+    @apply relative flex min-h-24 cursor-pointer select-none flex-col justify-between rounded-2xl border border-line bg-surface p-3 text-left transition-colors;
+  }
+  .tile:hover { border-color: var(--slate); }
+  .tile[aria-pressed="true"] { border-color: var(--lime); background: color-mix(in srgb, var(--lime) 14%, var(--surface)); }
+  .tile .check {
+    @apply absolute right-2 top-2 grid size-6 place-items-center rounded-full border border-line text-xs;
+    color: transparent;
+  }
+  .tile[aria-pressed="true"] .check { background: var(--lime); border-color: var(--lime); color: var(--charcoal); font-weight: 800; }
+  .monogram { @apply grid size-11 place-items-center rounded-xl font-bold; font-family: var(--font-display), Impact, sans-serif; letter-spacing: 0.03em; }
+  .pill-tab { @apply inline-flex min-h-9 shrink-0 cursor-pointer items-center rounded-full border border-line px-3 text-sm; }
+  .pill-tab[aria-pressed="true"] { background: var(--offwhite); color: var(--charcoal); border-color: var(--offwhite); font-weight: 700; }
+  .arrow::after { content: "\2197"; margin-left: 0.4rem; }
 }

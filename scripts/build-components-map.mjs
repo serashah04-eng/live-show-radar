@@ -11,18 +11,18 @@ const COLS = ["Actor", "Trigger", "Input", "Context", "Processing", "AI", "Outpu
 
 const B = (id, col, row, status, ...lines) => ({ id, col, row, status, lines });
 const boxes = [
-  B("A1", 0, 0, "tested", "Karan (fan)", "Follows artists, sets", "genres, cities, alerts"),
+  B("A1", 0, 0, "tested", "Karan (fan)", "Taps to pick artists,", "genres, cities, alerts"),
   B("A2", 0, 1, "built", "Owner / admin", "Reviews and verifies", "events with evidence"),
   B("A3", 0, 2, "pending", "GitHub Actions", "scheduler (30 min)", "not deployed yet"),
 
-  B("T1", 1, 0, "tested", "Opens app, follows,", "saves settings", "(Next.js, local owner mode)"),
+  B("T1", 1, 0, "tested", "Pick-your-scene wizard,", "artist tiles, settings", "(Next.js, local owner mode)"),
   B("T2", 1, 1, "built", "Add event by link", "form"),
   B("T3", 1, 2, "built", "Review: confirm event", "or add ticket phase"),
   B("T4", 1, 3, "tested", "POST /api/cron/discover", "CRON_SECRET required"),
   B("T5", 1, 4, "tested", "POST /api/cron/notify", "CRON_SECRET required"),
 
-  B("I1", 2, 0, "tested", "Followed artists", "+ aliases"),
-  B("I2", 2, 1, "tested", "Saved genres, cities,", "alert preferences"),
+  B("I1", 2, 0, "tested", "176-artist catalogue", "+ followed list, aliases"),
+  B("I2", 2, 1, "tested", "33 genres, 115 cities,", "alert preferences"),
   B("I3", 2, 2, "built", "User-submitted URL", "(never fetched or scraped)"),
   B("I4", 2, 3, "tested", "Ticketmaster Discovery", "API (0 India events found)"),
   B("I5", 2, 4, "tested", "Google Search results", "via Gemini grounding"),
@@ -68,7 +68,7 @@ const maxRow = Math.max(...boxes.map((b) => b.row));
 const totalW = LEFT * 2 + STEP * COLS.length - (STEP - W);
 const totalH = TOP + (maxRow + 1) * ROWSTEP + 70;
 
-const C = { bg: "#151821", lane: "#1a1e2b", lane2: "#171b26", cobalt: "#315CFF", orange: "#FF7A30", off: "#F4F5F7", slate: "#70798B", slateText: "#A3ABBD" };
+const C = { lime: "#C6D800", bg: "#151821", lane: "#1a1e2b", lane2: "#171b26", cobalt: "#315CFF", orange: "#FF7A30", off: "#F4F5F7", slate: "#70798B", slateText: "#A3ABBD" };
 const style = {
   tested: `fill="#1d2848" stroke="${C.cobalt}" stroke-width="2"`,
   built: `fill="#262029" stroke="${C.orange}" stroke-width="2" stroke-dasharray="6 4"`,
@@ -76,10 +76,10 @@ const style = {
 };
 
 let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}" font-family="Arial, Helvetica, sans-serif">
-<title>Live Show Radar: components map (as implemented, ${AS_OF})</title>
+<title>FrontRow: components map (as implemented, ${AS_OF})</title>
 <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${C.slateText}"/></marker></defs>
 <rect width="100%" height="100%" fill="${C.bg}"/>
-<text x="${LEFT}" y="34" fill="${C.off}" font-size="22" font-weight="700" letter-spacing="1">LIVE SHOW <tspan fill="${C.orange}">RADAR</tspan>  ·  COMPONENTS MAP</text>
+<text x="${LEFT}" y="34" fill="${C.off}" font-size="22" font-weight="700" letter-spacing="1"><tspan fill="${C.lime}">FRONTROW</tspan>  ·  COMPONENTS MAP</text>
 <text x="${LEFT}" y="54" fill="${C.slateText}" font-size="12">As implemented, status as of ${AS_OF}. Arrows show data flow. This map is not evidence that anything works: see docs/NINE-CHECKLIST.md for the tests.</text>
 `;
 

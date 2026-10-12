@@ -19,6 +19,37 @@ export async function toggleFollow(formData: FormData) {
   revalidatePath("/");
 }
 
+const UUID = /^[0-9a-f-]{36}$/i;
+
+/** One tap on an artist tile. Returns ok:false so the tile can undo itself. */
+export async function setFollow(artistId: string, follow: boolean): Promise<{ ok: boolean }> {
+  const user = await requireUser();
+  if (!UUID.test(artistId)) return { ok: false };
+  const sb = await createClient(); // RLS: users can only touch their own follows
+  const { error } = follow
+    ? await sb.from("user_artist_follows").upsert({ user_id: user.id, artist_id: artistId })
+    : await sb.from("user_artist_follows").delete().eq("user_id", user.id).eq("artist_id", artistId);
+  if (error) return { ok: false };
+  revalidatePath("/feed");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+/** "Select all shown" / "Clear shown" for the artists currently on screen. */
+export async function setFollowMany(artistIds: string[], follow: boolean): Promise<{ ok: boolean }> {
+  const user = await requireUser();
+  const ids = [...new Set(artistIds)].filter((i) => UUID.test(i)).slice(0, 300);
+  if (ids.length === 0) return { ok: true };
+  const sb = await createClient();
+  const { error } = follow
+    ? await sb.from("user_artist_follows").upsert(ids.map((artist_id) => ({ user_id: user.id, artist_id })))
+    : await sb.from("user_artist_follows").delete().eq("user_id", user.id).in("artist_id", ids);
+  if (error) return { ok: false };
+  revalidatePath("/feed");
+  revalidatePath("/");
+  return { ok: true };
+}
+
 export interface AddArtistState {
   error?: string;
   message?: string;

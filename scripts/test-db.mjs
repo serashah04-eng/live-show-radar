@@ -19,7 +19,14 @@ for (const t of tables) {
   check(`table ${t} exists`, !error, error ? error.message : `${count} rows`);
 }
 const { data: seeded } = await admin.from("artists").select("name, artist_aliases(alias)").order("name");
-check("5 starter artists seeded", seeded?.length === 5, seeded?.map((a) => `${a.name}(${a.artist_aliases.length})`).join(", "));
+const starters = ["Prateek Kuhad", "Anuv Jain", "When Chai Met Toast", "The Local Train", "Peter Cat Recording Co"];
+check(
+  "catalogue seeded (at least 150 artists, all 5 starters present)",
+  (seeded?.length ?? 0) >= 150 && starters.every((s) => seeded?.some((a) => a.name === s)),
+  `${seeded?.length} artists`,
+);
+const { count: genreCount } = await admin.from("genres").select("*", { count: "exact", head: true });
+check("full genre list seeded (at least 30 genres)", (genreCount ?? 0) >= 30, `${genreCount} genres`);
 
 console.log("\n== Signed-out browser key (RLS must expose nothing) ==");
 for (const t of ["artists","events","user_preferences","notification_preferences","notification_log","profiles"]) {

@@ -1,3 +1,4 @@
+import { APP_NAME } from "../brand.ts";
 import type { AlertKind } from "./plan.ts";
 
 export interface AlertContext {
@@ -50,8 +51,8 @@ export function composeAlert(c: AlertContext): ComposedAlert {
       subject = `Update: ${c.artists}: ${c.changeLabel ?? "details changed"}`;
       break;
     case "test":
-      headline = "TEST: Live Show Radar";
-      subject = "Live Show Radar test alert";
+      headline = `TEST: ${APP_NAME}`;
+      subject = `${APP_NAME} test alert`;
       break;
     default:
       headline = `NEW SHOW: ${c.artists}`;

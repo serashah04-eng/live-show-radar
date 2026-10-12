@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/SubmitButton";
-import { INDIAN_CITIES } from "@/lib/format";
+import { CityPicker } from "@/components/CityPicker";
 import type { NotificationPrefs } from "@/lib/data";
 import type { Prefs } from "@/lib/feed";
 import { saveSettings, type SettingsState } from "./actions";
@@ -31,7 +31,6 @@ export function SettingsForm({
   selectedGenreIds: number[];
 }) {
   const [state, action] = useActionState<SettingsState, FormData>(saveSettings, {});
-  const extraCities = prefs.cities.filter((c) => !INDIAN_CITIES.includes(c));
 
   return (
     <form action={action} className="space-y-8">
@@ -59,21 +58,7 @@ export function SettingsForm({
 
       <section className="card space-y-4" aria-labelledby="c">
         <h2 id="c" className="text-2xl">Cities</h2>
-        <fieldset>
-          <legend className="label">Priority cities (listed first)</legend>
-          <div className="flex flex-wrap gap-2">
-            {INDIAN_CITIES.map((c) => (
-              <label key={c} className="chip">
-                <input type="checkbox" name="cities" value={c} defaultChecked={prefs.cities.includes(c)} />
-                {c}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <div>
-          <label className="label" htmlFor="custom_cities">Other city (comma-separated)</label>
-          <input id="custom_cities" name="custom_cities" defaultValue={extraCities.join(", ")} placeholder="e.g. Udaipur" className="field" />
-        </div>
+        <CityPicker initial={prefs.cities} />
         <Toggle
           name="show_other_cities"
           label="Also show other Indian cities"

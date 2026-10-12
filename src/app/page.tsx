@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { EventCard } from "@/components/EventCard";
 import { requireUser } from "@/lib/auth";
 import { loadFeedEvents, loadPrefs, loadRecentRuns } from "@/lib/data";
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { buildFeed } from "@/lib/feed";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -36,11 +37,18 @@ async function Dashboard() {
 
   return (
     <div className="space-y-10">
+      <section className="mosaic relative overflow-hidden rounded-2xl border border-line p-6 sm:p-10">
+        <p className="mono">Your radar</p>
+        <h1 className="wordmark mt-2 text-6xl sm:text-8xl">{APP_NAME}</h1>
+        <p className="mt-3 max-w-xl text-lg">{APP_TAGLINE}</p>
+        <p className="mt-1 max-w-xl text-sm muted">Bengaluru first, all of India included. Alerts only say &ldquo;verified&rdquo; when there is evidence.</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/start" className="btn-primary arrow">{prefs.followedArtistIds.length === 0 ? "Pick your scene" : "Change my picks"}</Link>
+          <Link href="/feed" className="btn-ghost">Browse the feed</Link>
+        </div>
+      </section>
+
       <section>
-        <h1 className="text-4xl sm:text-5xl">Your radar</h1>
-        <p className="mt-2 max-w-2xl muted">
-          Discovered concerts for the artists you follow, Bengaluru first, all of India included.
-        </p>
         <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             ["Artists followed", prefs.followedArtistIds.length],

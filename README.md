@@ -1,6 +1,8 @@
-# Live Show Radar
+# FrontRow
 
-Indie-first concert discovery and ticket alerts for India, Bengaluru first. Follow your artists, get a Telegram or email alert when a show is announced, and see an early-bird warning **only when the phase and its deadline are verified with evidence**.
+*(formerly "Live Show Radar"; the name lives in one place, `src/lib/brand.ts`.)*
+
+Indie-first concert discovery and ticket alerts for India, Bengaluru first. Pick your artists, genres and cities by tapping, get a Telegram or email alert when a show is announced, and see an early-bird warning **only when the phase and its deadline are verified with evidence**.
 
 Built for the MESA C4 AI final exam (problem: *Live Show Radar*). All AI tasks use Gemini Flash.
 
@@ -13,11 +15,12 @@ Editable source: [docs/components-map.svg](docs/components-map.svg) (regenerate 
 - **Discovers** shows for followed artists using Gemini Flash with Google Search grounding and the Ticketmaster Discovery API, plus a manual **Add event by link** form. It does **not** scrape BookMyShow, District or SkillBox.
 - **Never overstates certainty.** Search and AI results start as *Unconfirmed*. Two independent websites make it *Reported by 2+ sites*. Only an official API record or an owner review with an evidence URL and a quoted line makes it *Verified*. Ticket deadlines are never guessed.
 - **Alerts** on Telegram and email (independent channels, deduplicated, retried at most 3 times, failures visible).
-- **Personalised**: multiple genres (OR logic), followed artists, priority cities (Bengaluru by default, other cities never hidden), all saved in Supabase.
+- **Personalised by tapping, not typing**: a 3-step "Pick your scene" flow, a 176-artist catalogue shown as tiles with genre and type filters (one tap follows and saves), 33 genres, and 115 cities grouped by region. Multiple genres use OR logic, Bengaluru is the default priority city, other cities are never hidden, and everything is saved in Supabase. Missing an artist? "Add an artist" creates one with aliases.
+- Seed or extend the catalogue with `node --env-file=.env.local scripts/seed-catalog.mjs` (edit `src/lib/catalog/*`). Being in the catalogue says nothing about whether an artist has shows: only discovery evidence does.
 
 ## Tech
 
-Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind v4 · Supabase (Postgres, Auth, RLS) · Gemini Flash · Telegram Bot API · Resend · Vercel + GitHub Actions.
+Next.js 16 (App Router, Cache Components) Â· TypeScript Â· Tailwind v4 Â· Supabase (Postgres, Auth, RLS) Â· Gemini Flash Â· Telegram Bot API Â· Resend Â· Vercel + GitHub Actions.
 
 ## Run it locally
 
@@ -53,7 +56,7 @@ Migrations are in `supabase/migrations/` (apply in order in the Supabase SQL edi
 ## Tests
 
 ```bash
-node --test scripts/feed.test.mjs scripts/discovery.test.mjs scripts/notify.test.mjs   # 44 unit tests, no network
+node --test scripts/feed.test.mjs scripts/discovery.test.mjs scripts/notify.test.mjs scripts/catalog.test.mjs   # 48 unit tests, no network
 node --env-file=.env.local scripts/test-db.mjs             # schema, RLS, constraints (live Supabase)
 node --env-file=.env.local scripts/check-integrations.mjs  # which services are configured and reachable
 node --env-file=.env.local scripts/test-notify-failure.mjs # failure and retry handling (sends nothing real)

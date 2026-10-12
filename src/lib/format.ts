@@ -1,4 +1,5 @@
 import type { FeedEvent } from "@/lib/feed";
+import { ALL_INDIA_CITIES } from "./catalog/cities.ts";
 
 const tz = "Asia/Kolkata";
 
@@ -38,7 +39,4 @@ export const TICKET_STATUS_LABEL: Record<string, string> = {
   unknown: "Ticket status unknown",
 };
 
-export const INDIAN_CITIES = [
-  "Bengaluru", "Mumbai", "Delhi", "Chennai", "Hyderabad", "Pune", "Kolkata", "Gurugram", "Noida",
-  "Jaipur", "Kochi", "Goa", "Ahmedabad", "Chandigarh", "Lucknow", "Indore", "Bhubaneswar", "Shillong",
-];
+export const INDIAN_CITIES = ALL_INDIA_CITIES;

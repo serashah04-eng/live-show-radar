@@ -1,16 +1,14 @@
+import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { LoginForm } from "./LoginForm";
 
 export default function LoginPage() {
   return (
     <div className="grid items-center gap-10 py-6 md:grid-cols-2">
-      <section>
-        <p className="badge-urgent mb-4">Indie-first · India · Bengaluru first</p>
-        <h1 className="text-5xl sm:text-6xl">
-          Never hear about a show from someone else&apos;s story.
-        </h1>
-        <p className="mt-5 max-w-md text-lg muted">
-          Follow your artists. Get a Telegram or email alert the moment a show is announced in India, with the early-bird window flagged only when it is verified.
-        </p>
+      <section className="mosaic rounded-2xl border border-line p-6 sm:p-10">
+        <p className="mono">Concert alerts for India</p>
+        <h1 className="wordmark mt-3 text-7xl sm:text-9xl">{APP_NAME}</h1>
+        <p className="mt-4 text-2xl font-bold">{APP_TAGLINE}</p>
+        <p className="mt-3 max-w-md muted">{APP_DESCRIPTION}</p>
       </section>
       <LoginForm />
     </div>
