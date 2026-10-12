@@ -34,8 +34,8 @@ export function SettingsForm({
 
   return (
     <form action={action} className="space-y-8">
-      <section className="card space-y-4" aria-labelledby="g">
-        <h2 id="g" className="text-2xl">Genres</h2>
+      <details className="card space-y-4" aria-labelledby="g" open={!prefs.allGenres}>
+        <summary id="g" className="cursor-pointer text-2xl font-bold">Genres <span className="text-sm font-normal muted">(optional · {prefs.allGenres ? "all genres" : selectedGenreIds.length + " picked"})</span></summary>
         <Toggle name="all_genres" label="All genres" hint="Show every concert regardless of genre. Untick to pick genres below." defaultChecked={prefs.allGenres} />
         <fieldset>
           <legend className="label">Pick any number (a concert matches if it fits any selected genre)</legend>
@@ -54,11 +54,11 @@ export function SettingsForm({
           hint="Off (recommended): artists you follow always show up, even with no genre data. On: only selected genres show."
           defaultChecked={prefs.strictGenreMode}
         />
-      </section>
+      </details>
 
       <section className="card space-y-4" aria-labelledby="c">
         <h2 id="c" className="text-2xl">Cities</h2>
-        <CityPicker initial={prefs.cities} />
+        <CityPicker initial={prefs.cities} compact />
         <Toggle
           name="show_other_cities"
           label="Also show other Indian cities"

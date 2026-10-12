@@ -1,3 +1,4 @@
+import { ArtistAvatar } from "@/components/ArtistAvatar";
 import { Suspense } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireAdmin } from "@/lib/auth";
@@ -54,7 +55,7 @@ async function Queue() {
             <StatusBadge event={r as never} />
             <span className="text-xs muted">{r.event_sources.length} source(s) · discovered {timeAgo(r.discovered_at)}</span>
           </div>
-          <h3 className="mt-2 text-xl">{(r.event_artists as unknown as { artists: { name: string } | null }[]).map((a) => a.artists?.name).filter(Boolean).join(" + ")} · {r.city ?? "city?"}</h3>
+          <h3 className="mt-2 flex items-center gap-3 text-xl"><ArtistAvatar name={(r.event_artists as unknown as { artists: { name: string } | null }[])[0]?.artists?.name ?? "?"} size={36} />{(r.event_artists as unknown as { artists: { name: string } | null }[]).map((a) => a.artists?.name).filter(Boolean).join(" + ")} · {r.city ?? "city?"}</h3>
           <p className="text-sm muted">{r.title} · {r.venue ?? "venue?"} · {d.full}</p>
         </summary>
         <div className="space-y-6 border-t border-line p-4">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { ArtistAvatar } from "@/components/ArtistAvatar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookButton } from "@/components/BookButton";
 import { requireUser } from "@/lib/auth";
@@ -59,7 +60,7 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
           <StatusBadge event={e} />
           <span className="badge-pending">{TICKET_STATUS_LABEL[e.ticket_status] ?? e.ticket_status}</span>
         </div>
-        <h1 className="mt-3 text-4xl sm:text-6xl">{artists || e.title}</h1>
+        <div className="mt-3 flex items-center gap-4"><ArtistAvatar name={firstArtist} size={88} /><h1 className="text-4xl sm:text-6xl">{artists || e.title}</h1></div>
         <p className="mt-2 text-lg">{e.title}</p>
       </div>
 

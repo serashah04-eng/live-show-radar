@@ -2,6 +2,7 @@ import Link from "next/link";
 import { bookingLink, isPlaceholder, locationLink, type FeedItem } from "@/lib/feed";
 import { sourceLinks } from "@/lib/links";
 import { eventDateParts, formatDateTime, TICKET_STATUS_LABEL, timeAgo } from "@/lib/format";
+import { ArtistAvatar } from "./ArtistAvatar";
 import { BookButton } from "./BookButton";
 import { StatusBadge } from "./StatusBadge";
 
@@ -35,7 +36,8 @@ export function EventCard({ item }: { item: FeedItem }) {
           )}
           {e.ticket_status !== "unknown" && <span className="badge-pending">{TICKET_STATUS_LABEL[e.ticket_status]}</span>}
         </div>
-        <h3 className="text-xl sm:text-2xl">
+        <h3 className="flex items-center gap-3 text-xl sm:text-2xl">
+          <ArtistAvatar name={e.artists[0]?.name ?? e.title} size={44} />
           {placeholder ? <span>{artistNames || e.title}</span> : (
             <Link href={`/events/${e.id}`} className="hover:text-lime focus-visible:text-lime">
               {artistNames || e.title}
