@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { EventCard } from "@/components/EventCard";
 import { FindShows } from "@/components/FindShows";
 import { Newsroom } from "@/components/Newsroom";
-import { requireUser } from "@/lib/auth";
+import { isAdminUser, requireUser } from "@/lib/auth";
 import { loadFeedEvents, loadPendingSearches, loadPrefs, loadRecentRuns } from "@/lib/data";
 import { buildFeed, placeholderItem } from "@/lib/feed";
 import { formatDateTime, timeAgo } from "@/lib/format";
@@ -30,7 +30,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
     loadRecentRuns(sb, 12),
     sb.from("notification_log").select("*", { count: "exact", head: true }).eq("status", "failed"),
   ]);
-  const pending = await loadPendingSearches(sb, prefs.followedArtistIds);
+  const admin = await isAdminUser();
+  const pending = admin ? await loadPendingSearches(sb, prefs.followedArtistIds) : [];
 
   // newsroom: YOUR artists by default; every upcoming show only after "Show all" is pressed
   const upcoming = buildFeed(events, prefs, { scope: showAll ? "all" : "mine", sort: "date" }).filter((i) => !i.event.is_sample);
@@ -55,7 +56,11 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
       </p>
       <Newsroom upcoming={upcoming} followedIds={prefs.followedArtistIds} showAll={showAll} />
 
-      <FindShows pending={pending} followedCount={prefs.followedArtistIds.length} />
+      {admin ? (
+        <FindShows pending={pending} followedCount={prefs.followedArtistIds.length} />
+      ) : (
+        prefs.followedArtistIds.length > 0 && <p className="text-sm muted" role="status">We are watching ${prefs.followedArtistIds.length} artist${prefs.followedArtistIds.length === 1 ? "" : "s"} for new India shows around the clock. You get an alert the moment one is announced.</p>
+      )}
 
       <section aria-labelledby="rec">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
