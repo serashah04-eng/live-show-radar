@@ -262,3 +262,36 @@ h3 { font-size: 1.05rem !important; }
 @keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(-1deg); } }
 @media (prefers-reduced-motion: no-preference) { .hero-card .-rotate-3 { animation: floaty 5s ease-in-out infinite; } }
 @media (prefers-reduced-motion: reduce) { .heart-pop { animation: none; } }
+
+/* ---- light theme polish: stronger borders, white controls, soft card shadows ---- */
+:root[data-theme="light"] {
+  --line: #b4ae9d;
+  --surface-2: #e4dfd2;
+  --slate: #4f5668;
+}
+:root[data-theme="light"] .btn-ghost,
+:root[data-theme="light"] .chip,
+:root[data-theme="light"] .pill-tab,
+:root[data-theme="light"] .field {
+  background: #ffffff;
+  border-color: var(--line);
+  color: var(--offwhite);
+}
+:root[data-theme="light"] .btn-ghost:hover { background: var(--surface-2); }
+:root[data-theme="light"] .pill-tab[aria-pressed="true"] { background: #14171f; color: #ffffff; border-color: #14171f; }
+:root[data-theme="light"] .card,
+:root[data-theme="light"] aside form { box-shadow: 0 1px 2px rgba(20, 23, 31, 0.08); }
+:root[data-theme="light"] .field::placeholder { color: #6b7385; }
+:root[data-theme="light"] .btn-primary { box-shadow: 0 1px 0 rgba(20, 23, 31, 0.25); }
+:root[data-theme="light"] .badge-lime { color: var(--ink); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --line: #b4ae9d; --surface-2: #e4dfd2; --slate: #4f5668; }
+  :root:not([data-theme="dark"]) .btn-ghost,
+  :root:not([data-theme="dark"]) .chip,
+  :root:not([data-theme="dark"]) .pill-tab,
+  :root:not([data-theme="dark"]) .field { background: #ffffff; border-color: var(--line); color: var(--offwhite); }
+  :root:not([data-theme="dark"]) .pill-tab[aria-pressed="true"] { background: #14171f; color: #fff; border-color: #14171f; }
+  :root:not([data-theme="dark"]) .card { box-shadow: 0 1px 2px rgba(20, 23, 31, 0.08); }
+}
+:root[data-theme="light"] .heart:not([aria-pressed="true"]) { background: #ffffff; color: #14171f; border-color: var(--line); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .heart:not([aria-pressed="true"]) { background: #ffffff; color: #14171f; border-color: var(--line); } }

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { APP_NAME } from "@/lib/brand";
 import { isLocalOwnerMode } from "@/lib/local-mode";
-import { signOutTest } from "@/app/signin/actions";
 import { NavLinks } from "./NavLinks";
 import { ThemeToggle } from "./ThemeToggle";
 import { MenuOverlay, type MenuLink } from "./MenuOverlay";
@@ -11,7 +10,6 @@ export async function Nav() {
   const user = await getCurrentUser();
   const admin = user ? await isAdminUser() : false;
   const local = isLocalOwnerMode();
-  const guest = !user || (user.email ?? "").endsWith("@frontrow-guest.app");
 
   const links: MenuLink[] = user
     ? [
@@ -23,7 +21,6 @@ export async function Nav() {
         { href: "/submit", label: "Add event", hint: "found a show? paste the link" },
         { href: "/profile", label: "Profile", hint: "name, email, Telegram, phone" },
         { href: "/settings", label: "Settings", hint: "genres, cities and alert types" },
-        { href: "/signin", label: "Test sign-in", hint: "optional: keep favourites across devices" },
         ...(admin ? [{ href: "/review", label: "Review", hint: "owner only" }, { href: "/status", label: "Status", hint: "owner only" }] : []),
       ]
     : [];
@@ -31,7 +28,7 @@ export async function Nav() {
   return (
     <header className="border-b border-line">
       <div className="wrap flex items-center gap-3 py-3">
-        {user ? <MenuOverlay links={links} email={guest ? undefined : user.email} signOutAction={guest || local ? undefined : signOutTest} /> : null}
+        {user ? <MenuOverlay links={links} /> : null}
         <Link href="/" className="wordmark text-3xl sm:text-4xl" aria-label={`${APP_NAME} home`}>
           {APP_NAME}
         </Link>

@@ -38,13 +38,13 @@ export function MenuOverlay({ links, signOutAction, email }: { links: MenuLink[]
             <span className="mono">Menu</span>
             <button type="button" className="btn-ghost min-h-8 px-5" onClick={() => setOpen(false)} autoFocus>Close</button>
           </div>
-          <nav aria-label="Menu links" className="mt-6 flex-1 overflow-y-auto">
+          <nav aria-label="Menu links" className="mx-auto mt-4 w-full max-w-3xl flex-1 overflow-y-auto">
             <ul>
               {links.map((l, i) => (
                 <li key={l.href} className="border-t border-line">
-                  <Link href={l.href} onClick={() => setOpen(false)} className="group flex items-baseline gap-4 py-4 hover:text-lime">
-                    <span className="mono w-8">{String(i + 1).padStart(2, "0")}</span>
-                    <span className="display text-4xl sm:text-6xl">{l.label}</span>
+                  <Link href={l.href} onClick={() => setOpen(false)} className="group flex items-baseline gap-3 py-2.5 hover:text-lime">
+                    <span className="mono w-6">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="display text-2xl sm:text-3xl">{l.label}</span>
                     {l.hint && <span className="mono ml-auto hidden sm:inline">{l.hint}</span>}
                   </Link>
                 </li>

@@ -24,7 +24,7 @@ async function Profile() {
   const isGuest = (user.email ?? "").endsWith("@frontrow-guest.app");
   return (
     <div className="mt-4">
-      {isGuest && <p className="notice mb-4">You are using FrontRow as a guest. Your profile is saved in this browser. Use Test sign-in from the menu if you want it on other devices too.</p>}
+      {isGuest && <p className="notice mb-4">You are using FrontRow as a guest. Your profile is saved in this browser.</p>}
       <ProfileForm
         botName="liveshowradarbot"
         initial={{
