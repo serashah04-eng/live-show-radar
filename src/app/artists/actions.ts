@@ -1,0 +1,56 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { requireUser } from "@/lib/auth";
+import { normalizeName } from "@/lib/discovery/normalize";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+
+export async function toggleFollow(formData: FormData) {
+  const user = await requireUser();
+  const artistId = String(formData.get("artistId") ?? "");
+  const follow = formData.get("follow") === "1";
+  if (!/^[0-9a-f-]{36}$/i.test(artistId)) return;
+  const sb = await createClient(); // RLS: users can only touch their own follows
+  if (follow) await sb.from("user_artist_follows").upsert({ user_id: user.id, artist_id: artistId });
+  else await sb.from("user_artist_follows").delete().eq("user_id", user.id).eq("artist_id", artistId);
+  revalidatePath("/artists");
+  revalidatePath("/feed");
+  revalidatePath("/");
+}
+
+export interface AddArtistState {
+  error?: string;
+  message?: string;
+}
+
+export async function addArtist(_prev: AddArtistState, formData: FormData): Promise<AddArtistState> {
+  const user = await requireUser();
+  const name = String(formData.get("name") ?? "").trim().replace(/\s+/g, " ");
+  const origin = String(formData.get("origin") ?? "other");
+  const aliasesRaw = String(formData.get("aliases") ?? "");
+  const genreIds = formData.getAll("genres").map((g) => Number(g)).filter((n) => Number.isInteger(n));
+  if (name.length < 2 || name.length > 80) return { error: "Enter the artist's name (2 to 80 characters)." };
+  if (!["indian_indie", "bollywood", "international", "other"].includes(origin)) return { error: "Choose a valid artist type." };
+
+  const norm = normalizeName(name);
+  if (!norm) return { error: "That name has no usable letters." };
+  const db = createServiceClient(); // shared catalogue is written server-side only
+  const { data: dup } = await db.from("artists").select("id").eq("normalized_name", norm).maybeSingle();
+  if (dup) return { error: `${name} is already in the catalogue. Search for them and tap Follow.` };
+
+  const { data: artist, error } = await db.from("artists").insert({ name, normalized_name: norm, origin }).select("id").single();
+  if (error) return { error: "Could not add the artist. Please try again." };
+
+  const aliases = [...new Set([name, ...aliasesRaw.split(",").map((a) => a.trim()).filter(Boolean)].slice(0, 12))];
+  await db.from("artist_aliases").upsert(
+    aliases.map((alias) => ({ artist_id: artist.id, alias, normalized_alias: normalizeName(alias) })).filter((a) => a.normalized_alias),
+    { onConflict: "artist_id,normalized_alias" },
+  );
+  if (genreIds.length) await db.from("artist_genres").insert(genreIds.map((genre_id) => ({ artist_id: artist.id, genre_id })));
+  await db.from("user_artist_follows").upsert({ user_id: user.id, artist_id: artist.id });
+
+  revalidatePath("/artists");
+  revalidatePath("/feed");
+  return { message: `${name} added and followed. The next discovery run will start looking for their shows.` };
+}

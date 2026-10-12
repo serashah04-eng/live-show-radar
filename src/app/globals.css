@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+/* Festival After Dark. Palette: charcoal / cobalt / festival orange / off-white / slate. */
+:root {
+  --charcoal: #151821;
+  --surface: #1d2230;
+  --surface-2: #262c3d;
+  --cobalt: #315cff;
+  --cobalt-soft: #8aa3ff; /* lighter cobalt: readable as text on charcoal */
+  --orange: #ff7a30;
+  --offwhite: #f4f5f7;
+  --slate: #70798b;
+  --slate-text: #a3abbd; /* slate lightened for small text contrast (AA on charcoal) */
+  --line: #2f3649;
+}
+
+@theme inline {
+  --color-charcoal: var(--charcoal);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-cobalt: var(--cobalt);
+  --color-cobalt-soft: var(--cobalt-soft);
+  --color-orange: var(--orange);
+  --color-offwhite: var(--offwhite);
+  --color-slate: var(--slate);
+  --color-slate-text: var(--slate-text);
+  --color-line: var(--line);
+  --font-sans: var(--font-body);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--charcoal);
+  color: var(--offwhite);
+  font-family: var(--font-body), system-ui, sans-serif;
+  background-image:
+    radial-gradient(900px 420px at 85% -120px, rgba(49, 92, 255, 0.22), transparent 70%),
+    radial-gradient(700px 360px at -10% -80px, rgba(255, 122, 48, 0.12), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+h1, h2, h3, .display {
+  font-family: var(--font-display), Impact, sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+
+:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@layer components {
+  .wrap { @apply mx-auto w-full max-w-6xl px-4 sm:px-6; }
+  .muted { color: var(--slate-text); }
+  .card { @apply rounded-2xl border border-line bg-surface p-5; }
+
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-cobalt text-white hover:bg-[#4a70ff]; }
+  .btn-ghost { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-line bg-transparent text-offwhite hover:bg-surface2; }
+  .btn-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-orange/50 bg-transparent text-orange hover:bg-orange/10; }
+
+  .field {
+    @apply min-h-11 w-full rounded-xl border border-line bg-charcoal px-3 text-sm text-offwhite placeholder:text-slate;
+  }
+  .label { @apply mb-1 block text-xs font-semibold uppercase tracking-wider; color: var(--slate-text); }
+
+  .chip {
+    @apply inline-flex min-h-9 cursor-pointer items-center rounded-full border border-line px-3 text-sm transition-colors;
+  }
+  .chip:has(input:checked) { @apply border-cobalt bg-cobalt text-white; }
+  .chip:has(input:focus-visible) { outline: 3px solid var(--orange); outline-offset: 2px; }
+  .chip input { @apply sr-only; }
+
+  .badge { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide; }
+  .badge-verified { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-cobalt/20 text-cobalt-soft ring-1 ring-cobalt/50; }
+  .badge-corroborated { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-surface2 text-offwhite ring-1 ring-slate; }
+  .badge-pending { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-transparent ring-1 ring-line; color: var(--slate-text); }
+  .badge-urgent { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-orange text-charcoal; }
+  .badge-warn { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-transparent text-orange ring-1 ring-orange/60; }
+
+  /* ticket-style event card with a perforated edge */
+  .ticket {
+    @apply relative grid overflow-hidden rounded-2xl border border-line bg-surface;
+    grid-template-columns: 5.5rem 1fr;
+  }
+  .ticket-date {
+    @apply flex flex-col items-center justify-center border-r border-dashed border-slate/60 bg-surface2 p-3 text-center;
+  }
+  .ticket::before, .ticket::after {
+    content: "";
+    position: absolute;
+    left: 4.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    background: var(--charcoal);
+    border: 1px solid var(--line);
+  }
+  .ticket::before { top: -0.7rem; }
+  .ticket::after { bottom: -0.7rem; }
+
+  .notice { @apply rounded-xl border px-4 py-3 text-sm; }
+  .notice-ok { @apply rounded-xl border px-4 py-3 text-sm border-cobalt/60 bg-cobalt/10; }
+  .notice-err { @apply rounded-xl border px-4 py-3 text-sm border-orange/60 bg-orange/10; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise { animation: rise 0.35s ease-out both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}

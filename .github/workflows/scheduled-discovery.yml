@@ -1,0 +1,50 @@
+name: Scheduled discovery and alerts
+
+# Vercel's free Hobby plan only runs cron jobs once a day, so GitHub Actions calls the site instead.
+# Change the interval by editing the cron line below (GitHub may delay runs by a few minutes).
+# Each call searches the next unsearched artist(s) (oldest first), so PARALLEL calls cover more artists per
+# interval. Calls are safe to overlap: artists are claimed atomically and alerts are deduplicated.
+# Needs two repository secrets (Settings > Secrets and variables > Actions):
+#   SITE_URL     e.g. https://live-show-radar.vercel.app   (no trailing slash)
+#   CRON_SECRET  the same value as CRON_SECRET in Vercel
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: discovery
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PARALLEL_CALLS: "2"
+    steps:
+      - name: Run discovery + alert cycles
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$SITE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "SITE_URL and CRON_SECRET repository secrets are not set yet. Skipping."
+            exit 0
+          fi
+          pids=""
+          for i in $(seq 1 "$PARALLEL_CALLS"); do
+            (
+              code=$(curl -sS -o "response-$i.json" -w "%{http_code}" -X POST \
+                -H "Authorization: Bearer $CRON_SECRET" \
+                --max-time 420 "$SITE_URL/api/cron/discover")
+              echo "call $i: HTTP $code"; cat "response-$i.json"; echo
+              [ "$code" -ge 200 ] && [ "$code" -lt 300 ]
+            ) &
+            pids="$pids $!"
+            sleep 2
+          done
+          fail=0
+          for p in $pids; do wait "$p" || fail=1; done
+          # a non-2xx response fails the run so it is visible in the Actions tab
+          exit $fail
