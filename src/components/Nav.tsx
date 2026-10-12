@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { signOut } from "@/app/login/actions";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { APP_NAME } from "@/lib/brand";
 import { isLocalOwnerMode } from "@/lib/local-mode";
@@ -28,7 +27,7 @@ export async function Nav() {
   return (
     <header className="border-b border-line">
       <div className="wrap flex items-center gap-3 py-3">
-        {user ? <MenuOverlay links={links} signOutAction={local ? undefined : signOut} email={user.email} /> : null}
+        {user ? <MenuOverlay links={links} /> : null}
         <Link href="/" className="wordmark text-3xl sm:text-4xl" aria-label={`${APP_NAME} home`}>
           {APP_NAME}
         </Link>

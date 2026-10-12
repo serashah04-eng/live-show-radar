@@ -14,7 +14,7 @@ const ITEMS = [
 /** Thumb-friendly tab bar for phones. Hidden on larger screens, where the top bar is used. */
 export function BottomNav() {
   const path = usePathname();
-  if (path === "/login" || path.startsWith("/auth")) return null;
+  if (path.startsWith("/auth") || path.startsWith("/guest")) return null;
   return (
     <nav aria-label="Quick navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur lg:hidden">
       <ul className="mx-auto grid max-w-md grid-cols-5">

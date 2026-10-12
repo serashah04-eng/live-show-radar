@@ -2,9 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isLocalOwnerMode } from "@/lib/local-mode";
 
-const PUBLIC_PREFIXES = ["/login", "/auth"];
+const PUBLIC_PREFIXES = ["/guest", "/auth"];
 
-// Refreshes the Supabase session cookie and sends signed-out visitors to /login.
+// Refreshes the Supabase session cookie and gives signed-out visitors a private guest profile (there is no sign-in page).
 // This is an optimistic check only; every page, action and route re-verifies the user.
 export async function proxy(request: NextRequest) {
   if (isLocalOwnerMode()) {
@@ -35,8 +35,9 @@ export async function proxy(request: NextRequest) {
 
   if (!signedIn && !isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.search = "";
+    const target = request.nextUrl.pathname + request.nextUrl.search;
+    url.pathname = "/guest";
+    url.search = `?next=${encodeURIComponent(target)}`;
     return NextResponse.redirect(url);
   }
   if (signedIn && path === "/login") {
