@@ -3,6 +3,7 @@ import { signOut } from "@/app/login/actions";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { APP_NAME } from "@/lib/brand";
 import { isLocalOwnerMode } from "@/lib/local-mode";
+import { isTrialMode } from "@/lib/trial";
 import { MenuOverlay, type MenuLink } from "./MenuOverlay";
 
 export async function Nav() {
@@ -32,6 +33,9 @@ export async function Nav() {
           <span className="badge-warn" title="Development only. The public site always requires a login.">
             Local owner mode
           </span>
+        )}
+        {user && !local && isTrialMode() && (
+          <span className="badge-warn" title="Any email and any password works here. Not for real data.">Trial build</span>
         )}
         <nav aria-label="Main" className="ml-auto hidden items-center gap-1 md:flex">
           {user && (

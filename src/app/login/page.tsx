@@ -1,4 +1,5 @@
 import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from "@/lib/brand";
+import { isTrialMode } from "@/lib/trial";
 import { LoginForm } from "./LoginForm";
 
 export default function LoginPage() {
@@ -10,7 +11,7 @@ export default function LoginPage() {
         <p className="mt-4 text-2xl font-bold">{APP_TAGLINE}</p>
         <p className="mt-3 max-w-md muted">{APP_DESCRIPTION}</p>
       </section>
-      <LoginForm />
+      <LoginForm trial={isTrialMode()} />
     </div>
   );
 }

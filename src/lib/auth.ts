@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { LOCAL_OWNER_ID, isLocalOwnerMode } from "@/lib/local-mode";
+import { isTrialMode } from "@/lib/trial";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -45,6 +46,8 @@ const adminEmails = () =>
 
 export const isAdminUser = cache(async (): Promise<boolean> => {
   if (isLocalOwnerMode()) return true;
+  // Trial build: anyone can sign in as any email, so an email can never grant admin rights.
+  if (isTrialMode()) return false;
   const user = await getCurrentUser();
   if (!user) return false;
   if (user.email && adminEmails().includes(user.email.toLowerCase())) return true;

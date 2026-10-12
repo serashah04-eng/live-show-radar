@@ -91,3 +91,7 @@ Each call searches the next unsearched artist (oldest first), second-checks one 
 - **Verification:** nothing is verified automatically from search results. Early-bird urgency requires you to review the source page and record the evidence.
 - **Email** is implemented but was not delivery-tested at the time of writing; Resend's free test sender can email only one address.
 - **Not fixed by design:** the app informs; you decide what to attend and buy.
+
+## Trial build: any email and any password
+
+This build is a **trial**. Any email and any password signs in (an account is created on first use and the password is never checked), and the sign-up page says so. Because anyone can claim any email, **nobody is an admin on the public site**: Review and Status are hidden there. Review events locally (`LOCAL_OWNER_MODE=true`, same database). Turn the trial off with `TRIAL_MODE=false` in Vercel to go back to real accounts, and use real accounts before storing anything private.
