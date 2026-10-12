@@ -21,7 +21,8 @@ export async function Nav() {
         { href: "/artists", label: "Artists", hint: "browse and add" },
         { href: "/start", label: "Pick your scene", hint: "cities and artists" },
         { href: "/submit", label: "Add event", hint: "found a show? paste the link" },
-        { href: "/settings", label: "Settings", hint: "alerts and preferences" },
+        { href: "/profile", label: "Profile", hint: "name, email, Telegram, phone" },
+        { href: "/settings", label: "Settings", hint: "genres, cities and alert types" },
         { href: "/signin", label: "Test sign-in", hint: "optional: keep favourites across devices" },
         ...(admin ? [{ href: "/review", label: "Review", hint: "owner only" }, { href: "/status", label: "Status", hint: "owner only" }] : []),
       ]

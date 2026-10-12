@@ -56,7 +56,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
       <p className="text-sm muted" role="status">
         Alerts: Telegram <strong className={tgOn ? "text-ok" : "text-orange"}>{tgOn ? "on" : "not set up"}</strong>
         {" · "}Email <strong className={mailOn ? "text-ok" : "text-orange"}>{mailOn ? "on" : "not set up"}</strong>
-        {" · "}<Link href="/settings" className="underline underline-offset-2">Change</Link>
+        {" · "}<Link href="/profile" className="underline underline-offset-2">Change</Link>
       </p>
       <Newsroom upcoming={upcoming} followedIds={prefs.followedArtistIds} showAll={showAll} />
 
