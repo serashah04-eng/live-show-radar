@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { recomputeConfidence } from "../monitor/confidence.ts";
 import { recomputeCorroboration } from "./corroboration-core.ts";
 import { dedupeKey, normalizeName, venuesDisagree } from "./normalize.ts";
 import type { ArtistMatch } from "./match.ts";
@@ -73,6 +74,7 @@ export async function persistDiscovery(
         verified_at: verified ? now : null,
         dedupe_key: key,
         last_checked_at: now,
+        first_announced_at: now,
       })
       .select("id")
       .single();
@@ -120,5 +122,6 @@ export async function persistDiscovery(
   }
 
   await recomputeCorroboration(db, eventId);
+  await recomputeConfidence(db, eventId);
   return { action: created ? "created" : "merged", eventId, conflict };
 }

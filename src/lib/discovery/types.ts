@@ -1,4 +1,4 @@
-export type DiscoverySource = "gemini_grounding" | "ticketmaster" | "manual_submission" | "other";
+export type DiscoverySource = "gemini_grounding" | "ticketmaster" | "manual_submission" | "source_monitor" | "other";
 export type DatePrecision = "exact" | "day" | "month" | "unknown";
 
 /** One event candidate as reported by a source, before matching and persistence. */

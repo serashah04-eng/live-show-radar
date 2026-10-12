@@ -1,0 +1,831 @@
+[
+ {
+  "name": "The Music Academy Madras",
+  "category": "venue",
+  "root_url": "https://musicacademymadras.in/",
+  "linkedin": "not found on site",
+  "instagram": "https://www.instagram.com/madrasmusicacademy",
+  "x": "https://x.com/musicacademyma",
+  "youtube": "https://www.youtube.com/channel/UCKmE9i2iW0KaqgSxVFYmZUw",
+  "feed_url": null,
+  "events_page_url": "https://musicacademymadras.in/events/",
+  "cities_covered": [
+   "Chennai"
+  ],
+  "genres_covered": [
+   "Carnatic",
+   "classical",
+   "dance"
+  ],
+  "signals_provided": [
+   "announce"
+  ],
+  "typical_lead_time": "weeks to months (December season dates posted well ahead)",
+  "automation_notes": "robots.txt allows all (Disallow empty); sitemap https://musicacademymadras.in/sitemap_index.xml (declared in robots). No RSS/calendar feed found. Terms page not checked. Facebook: facebook.com/MadrasMusicAcademy.",
+  "credibility_tier": 1,
+  "evidence": [
+   "https://musicacademymadras.in/",
+   "https://musicacademymadras.in/events/",
+   "https://musicacademymadras.in/robots.txt"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "verified",
+  "notes": "Official site of The Music Academy, Madras (TTK Road). Events page lists seasonal festivals (100th Annual Concerts 15 Dec 2026-1 Jan 2027, competitions). Event category pages carry no ticketing on the index. No cross-check found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Nicco Park Kolkata",
+  "category": "venue",
+  "root_url": "https://www.niccoparks.com/",
+  "linkedin": "not found on site",
+  "instagram": "https://www.instagram.com/nicco_park/",
+  "x": "https://www.x.com/Niccopark",
+  "youtube": "https://www.youtube.com/@niccopark890",
+  "feed_url": null,
+  "events_page_url": "https://www.niccoparks.com/promotional-events/",
+  "cities_covered": [
+   "Kolkata"
+  ],
+  "genres_covered": [
+   "Bollywood/pop concerts",
+   "festivals",
+   "corporate events"
+  ],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "robots.txt allows all except /wp-admin/; sitemap https://www.niccoparks.com/sitemap_index.xml. No RSS/events calendar. Facebook: facebook.com/niccopark.kolkata. Terms not checked.",
+  "credibility_tier": 1,
+  "evidence": [
+   "https://www.niccoparks.com/",
+   "https://www.niccoparks.com/promotional-events/",
+   "https://www.niccoparks.com/robots.txt"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "verified",
+  "notes": "Operated by Nicco Parks & Resorts Ltd (JV with GoWB). Events page lists only past showcase events (NH7, Mirchi Jalshaghar etc.); the 'Events Booking Calendar' link is dead (#). Ticket portal https://tickets.niccoparks.com/ (not fetched). Social channels are the likely announcement route. No cross-check found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Kala Academy Goa",
+  "category": "venue",
+  "root_url": "https://kalaacademygoa.co.in/",
+  "linkedin": "not found on site",
+  "instagram": "not found on site",
+  "x": "not found on site",
+  "youtube": "https://www.youtube.com/playlist?list=PLS3OGngXDPsQA3CgSHAWedD4Ae1tY6qxY",
+  "feed_url": null,
+  "events_page_url": "https://kalaacademygoa.co.in/events/",
+  "cities_covered": [
+   "Panaji (Goa)"
+  ],
+  "genres_covered": [
+   "Konkani drama",
+   "classical dance",
+   "Indian classical music",
+   "cultural festivals"
+  ],
+  "signals_provided": [
+   "announce"
+  ],
+  "typical_lead_time": "unknown",
+  "automation_notes": "robots.txt allows all except /wp-admin/; sitemap https://kalaacademygoa.co.in/wp-sitemap.xml. Events Calendar plugin; no feed link seen in fetched content (iCal not verified).",
+  "credibility_tier": 2,
+  "evidence": [
+   "https://kalaacademygoa.co.in/",
+   "https://kalaacademygoa.co.in/?post_type=tribe_events",
+   "https://kalaacademygoa.co.in/robots.txt"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "needs_human_review",
+  "notes": "Domain surfaced by search as official; WordPress site with Events Calendar (tribe_events) pages. Operator (Goa Govt Kala Academy) not stated on fetched pages; upcoming-events view showed 0 events (latest past items 2022) while home page lists competitions/workshops without dates. Only Facebook (facebook.com/www.kalaacademygoa.co.in/) and a YouTube playlist linked. Confirm domain via goa.gov.in.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Kala Academy Goa (kalaacademygoa.org guess)",
+  "category": "venue",
+  "root_url": "https://kalaacademygoa.org/",
+  "linkedin": "not found on site",
+  "instagram": "not found on site",
+  "x": "not found on site",
+  "youtube": "not found on site",
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Panaji (Goa)"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [
+   "https://kalaacademygoa.org/"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "rejected",
+  "notes": "Guessed domain; 301-redirects to unrelated paithalmala.info.",
+  "rejected_reason": "Redirects to unrelated domain paithalmala.info; not the venue's site."
+ },
+ {
+  "name": "Hyderabad International Convention Centre (HICC)",
+  "category": "venue",
+  "root_url": "https://hicc.com/",
+  "linkedin": "https://www.linkedin.com/company/novotel-hyderabad-convention-centre/",
+  "instagram": "https://www.instagram.com/novotelhyd?igsh=eWMxOXZobjhrYzVs",
+  "x": "not found on site",
+  "youtube": "https://www.youtube.com/@NovotelHyd",
+  "feed_url": null,
+  "events_page_url": "https://hicc.com/?page_id=1926",
+  "cities_covered": [
+   "Hyderabad"
+  ],
+  "genres_covered": [
+   "conventions",
+   "trade shows",
+   "occasional concerts"
+  ],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "robots.txt allows all except /wp-admin/; sitemap https://hicc.com/sitemap_index.xml. No RSS found. Past events at https://hicc.com/past-events/ (linked, not fetched).",
+  "credibility_tier": 2,
+  "evidence": [
+   "https://www.hicc.com/",
+   "https://www.hicc.com/robots.txt",
+   "https://www.hicc.com/?page_id=1926"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "verified",
+  "notes": "Run by Accor (Novotel HICC complex). Mostly B2B/convention events; 'Currently On' page (page_id=1926) returned 404 on fetch. Social handles are those of Novotel Hyderabad Convention Centre. Low value for consumer concerts.",
+  "rejected_reason": null
+ },
+ {
+  "name": "TransStadia (EKA Arena, Ahmedabad)",
+  "category": "venue",
+  "root_url": "https://transstadia.com/",
+  "linkedin": "not found on site",
+  "instagram": "https://www.instagram.com/transstadia/",
+  "x": "https://twitter.com/SETransStadia",
+  "youtube": "https://www.youtube.com/channel/UC7FSMpL5vDYxEMCXVBkyb4A",
+  "feed_url": null,
+  "events_page_url": "https://transstadia.com/gallery/",
+  "cities_covered": [
+   "Ahmedabad"
+  ],
+  "genres_covered": [
+   "concerts",
+   "sports",
+   "garba"
+  ],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "robots.txt: User-Agent * Disallow empty (allows all). No sitemap/feed seen. Terms not checked.",
+  "credibility_tier": 2,
+  "evidence": [
+   "https://www.transstadia.com/",
+   "https://transstadia.com/gallery/",
+   "https://transstadia.com/robots.txt"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "verified",
+  "notes": "Operator TransStadia Enterprises Pvt Ltd (footer 2026). No upcoming events shown; /gallery/ is past-event photos only (Kabaddi World Cup, Garba, Barefoot Fest). Announcements likely via social handles. Facebook: facebook.com/transstadiaco. Not a monitorable calendar.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Science City Kolkata (NCSM)",
+  "category": "venue",
+  "root_url": "https://sciencecitykolkata.org.in/",
+  "linkedin": "not found on site",
+  "instagram": "not found on site",
+  "x": "not found on site",
+  "youtube": "not found on site",
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Kolkata"
+  ],
+  "genres_covered": [
+   "conventions",
+   "cultural programmes",
+   "science"
+  ],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "robots.txt allows all except /wp-admin/; sitemap https://sciencecitykolkata.org.in/wp-sitemap.xml. No RSS seen.",
+  "credibility_tier": 2,
+  "evidence": [
+   "https://sciencecitykolkata.org.in/",
+   "https://sciencecitykolkata.org.in/robots.txt"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "verified",
+  "notes": "Unit of National Council of Science Museums, Ministry of Culture. Convention Centre (2,232-seat main hall) bookable; no public events calendar found. Fetched home page contained odd template content; treat cautiously.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Sir Mutha Venkatasubba Rao Concert Hall",
+  "category": "venue",
+  "root_url": "https://smvrch.com/",
+  "linkedin": "not found on site",
+  "instagram": "not found on site",
+  "x": "not found on site",
+  "youtube": "not found on site",
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Chennai"
+  ],
+  "genres_covered": [
+   "Carnatic",
+   "theatre",
+   "concerts"
+  ],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [
+   "https://smvrch.com/",
+   "https://smvrch.com/events"
+  ],
+  "verified_on": "2026-10-12",
+  "status": "needs_human_review",
+  "notes": "Domain smvrch.com taken from a third-party job listing; landing page shows hall name and an Enter button but no operator/events/social details; /events returned 404. District.in lists ticketed shows there (SPB 80 tribute, 14 Jun 2026; search result only, not fetched), so venue hosts ticketed concerts.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Gachibowli Stadium / G.M.C. Balayogi Stadium (SATS)",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Hyderabad"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "sats.telangana.gov.in mentioned only as an archived Wikipedia citation; not fetched.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Shilpakala Vedika",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Hyderabad"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "shilpakalavedika.in appears in a search summary only; fetch returned no usable content.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Ravindra Bharathi",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Hyderabad"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Telangana Language & Culture Dept venue; no official site found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Lal Bahadur Stadium",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Hyderabad"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official site found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Jawaharlal Nehru Stadium Chennai (SDAT)",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Chennai"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official site found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "YMCA Nandanam Chennai",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Chennai"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Guessed ymcachennai.org failed DNS; official site not found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Chennai Trade Centre (TNTPO)",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Chennai"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Only third-party listings (showsbee, tradefairdates); mostly trade fairs.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Phoenix Marketcity Pune / Chennai",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Pune, Chennai"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "phoenixmarketcity.com fetch failed (certificate error); concerts seen only on AllEvents, not official.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Balewadi Stadium Pune",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Pune"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official site found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Salt Lake Stadium / Yuva Bharati Krirangan",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Kolkata"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official site found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Rabindra Sadan / Nandan / Princep Ghat",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Kolkata"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official calendar found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Narendra Modi Stadium (Gujarat Cricket Association)",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Ahmedabad"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "gujaratcricketassociation.com surfaced in search; WebFetch safety check rate-limited, not verified.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Sabarmati Riverfront Ahmedabad",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Ahmedabad"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official events calendar found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Punjab Cricket Association IS Bindra Stadium Mohali",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Mohali"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "cricketpunjab.in surfaced in search; fetch rate-limited, not verified.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Tagore Theatre Chandigarh",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Chandigarh"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Search found no official page; run by UT Cultural Affairs per news.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Sector 34 Exhibition Ground Chandigarh",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Chandigarh"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official site found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Jawahar Kala Kendra Jaipur",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Jaipur"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Guessed domains failed DNS; official calendar not located.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Sawai Mansingh Stadium Jaipur",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Jaipur"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official site found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Indore venues (Holkar Stadium, Rabindra Natya Griha)",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Indore"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Not found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Jawaharlal Nehru International Stadium Kochi (GCDA)",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Kochi"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Guessed gcda.in failed DNS; not found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Bolgatty Palace Kochi",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Kochi"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Not found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Dr Shyama Prasad Mukherjee Stadium Goa / Vagator-Anjuna clubs",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Goa"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "No official sites found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Lucknow venues (Ekana Stadium etc.)",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "Lucknow"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Not found.",
+  "rejected_reason": null
+ },
+ {
+  "name": "Bhopal, Guwahati, Shillong, Bhubaneswar, Coimbatore, Mysuru, Visakhapatnam venues",
+  "category": "venue",
+  "root_url": null,
+  "linkedin": null,
+  "instagram": null,
+  "x": null,
+  "youtube": null,
+  "feed_url": null,
+  "events_page_url": null,
+  "cities_covered": [
+   "multiple"
+  ],
+  "genres_covered": [],
+  "signals_provided": [],
+  "typical_lead_time": "unknown",
+  "automation_notes": "Not checked: no fetch of robots/terms succeeded.",
+  "credibility_tier": 3,
+  "evidence": [],
+  "verified_on": null,
+  "status": "unverified",
+  "notes": "Not researched in this pass; no official sources identified.",
+  "rejected_reason": null
+ }
+]

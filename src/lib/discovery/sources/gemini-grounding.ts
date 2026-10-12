@@ -1,3 +1,4 @@
+import { searchWeb, generateJson, type LlmOptions } from "../../ai/llm.ts";
 import { normalizeCity, parseDateField, isPast } from "../normalize.ts";
 import type { DiscoveryContext, RawDiscovery, SourceAdapter } from "../types.ts";
 
@@ -21,6 +22,9 @@ interface Chunk {
 export interface GeminiGroundingOptions {
   apiKey: string;
   model?: string;
+  /** Fallback when Google refuses (quota): Gemini Flash through OpenRouter. */
+  openrouterKey?: string;
+  openrouterModel?: string;
   cities?: string[];
   /** Pauses between artists to stay inside free-tier rate limits. */
   delayMs?: number;
@@ -81,6 +85,7 @@ async function resolveRedirect(uri: string): Promise<string> {
  */
 export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): SourceAdapter {
   const model = opts.model ?? "gemini-flash-latest";
+  const llm: LlmOptions = { googleKey: opts.apiKey, googleModel: model, openrouterKey: opts.openrouterKey ?? process.env.OPENROUTER_API_KEY, openrouterModel: opts.openrouterModel ?? process.env.OPENROUTER_MODEL ?? "google/gemini-3.8-flash", provider: "auto" };
   return {
     name: "gemini_grounding",
     async discover(ctx: DiscoveryContext): Promise<RawDiscovery[]> {
@@ -95,32 +100,16 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
         const names = [artist.name, ...artist.aliases.filter((a) => a !== artist.normalizedName)].slice(0, 4);
 
         // Step 1: grounded search (prose)
-        const searchBody = {
-          contents: [
-            {
-              parts: [
-                {
-                  text: `You MUST use Google Search before answering; do not answer from memory. ${opts.focus ? `Focus especially on finding a DIFFERENT website than the obvious one that lists this event: ${opts.focus}. ` : ""}${past ? `Run several searches, e.g. "${artist.name} India concert 2025", "${artist.name} live in India past shows", "${artist.name} concert review India". Today is ${today}. Search the web for live concerts or festival appearances in INDIA by "${artist.name}" (also known as: ${names.join(", ")}) that ALREADY TOOK PLACE between ${since} and ${today}. Only report events whose page states the exact date and city. For each event give the title, exact date, venue, city, and which website reported it. If you find nothing, say "no past India events found". Never guess.` : `Run several searches, e.g. "${artist.name} India tour 2026", "${artist.name} Bengaluru concert tickets", "${artist.name} live ${cityHint} 2026". Today is ${today}. Search the web for UPCOMING live concerts or festival appearances in INDIA (priority: ${cityHint}; but include every Indian city) for "${artist.name}" (also known as: ${names.join(", ")}). Only report events on pages dated today or later. For each event give the title, date as written, venue, city, which website listed it, and any ticket phase or deadline ONLY if a page states it. If you find nothing, say "no upcoming India events found". Never guess.`}`,
-                },
-              ],
-            },
-          ],
-          tools: [{ google_search: {} }],
-        };
+        const searchPrompt = `You MUST use Google Search before answering; do not answer from memory. ${opts.focus ? `Focus especially on finding a DIFFERENT website than the obvious one that lists this event: ${opts.focus}. ` : ""}${past ? `Run several searches, e.g. "${artist.name} India concert 2025", "${artist.name} live in India past shows", "${artist.name} concert review India". Today is ${today}. Search the web for live concerts or festival appearances in INDIA by "${artist.name}" (also known as: ${names.join(", ")}) that ALREADY TOOK PLACE between ${since} and ${today}. Only report events whose page states the exact date and city. For each event give the title, exact date, venue, city, and which website reported it. If you find nothing, say "no past India events found". Never guess.` : `Run several searches, e.g. "${artist.name} India tour 2026", "${artist.name} Bengaluru concert tickets", "${artist.name} live ${cityHint} 2026". Today is ${today}. Search the web for UPCOMING live concerts or festival appearances in INDIA (priority: ${cityHint}; but include every Indian city) for "${artist.name}" (also known as: ${names.join(", ")}). Only report events on pages dated today or later. For each event give the title, date as written, venue, city, which website listed it, and any ticket phase or deadline ONLY if a page states it. If you find nothing, say "no upcoming India events found". Never guess.`}`;
         // The model sometimes answers without searching; retry once to get real grounding.
         let notes = "";
         let chunks: Chunk[] = [];
         for (let attempt = 0; attempt < 3 && !chunks.length; attempt++) {
           if (attempt > 0 && opts.deadlineMs && Date.now() > opts.deadlineMs) break; // out of time budget: no more retries
           if (attempt > 0) await new Promise((r) => setTimeout(r, 3000));
-          const search = await generate(model, opts.apiKey, searchBody);
-          notes = textOf(search);
-          chunks = (search?.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [])
-            .map((g: { web?: { uri?: string; title?: string } }) => ({
-              uri: g.web?.uri ?? "",
-              host: (g.web?.title ?? "").toLowerCase().replace(/^www\./, ""),
-            }))
-            .filter((c: Chunk) => c.uri);
+          const search = await searchWeb(searchPrompt, llm);
+          notes = search.text;
+          chunks = search.sources;
         }
 
         if (!chunks.length || /no (upcoming |past )?india events found/i.test(notes) && notes.length < 400) {
@@ -133,21 +122,10 @@ export function createGeminiGroundingAdapter(opts: GeminiGroundingOptions): Sour
         }
 
         // Step 2: structured extraction, tied to the real search-result pages
-        const extract = await generate(model, opts.apiKey, {
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Research notes about ${past ? "past" : "upcoming"} India concerts by "${artist.name}":\n"""\n${notes}\n"""\n\nPages the search used:\n${chunks.map((c, i) => `${i}: ${c.host}`).join("\n")}\n\nExtract ONLY events that appear in the notes, for ${artist.name}, ${past ? `that took place between ${since} and ${today} (not today), each with a full YYYY-MM-DD date_iso`: `dated ${today} or later`}. Return JSON: {"events":[{"artist":string,"title":string,"date_text":string|null,"date_iso":"YYYY-MM-DD"|"YYYY-MM"|null,"venue":string|null,"city":string|null,"source_index":number (index from the pages list that lists this event),"has_ticket_link":boolean,"excerpt":string|null (short phrase copied from the notes)}]}. Use null for anything the notes do not state. Do not invent anything. If none, {"events":[]}.`,
-                },
-              ],
-            },
-          ],
-          generationConfig: { responseMimeType: "application/json", temperature: 0 },
-        });
+        const extractText = await generateJson(`Research notes about ${past ? "past" : "upcoming"} India concerts by "${artist.name}":\n"""\n${notes}\n"""\n\nPages the search used:\n${chunks.map((c, i) => `${i}: ${c.host}`).join("\n")}\n\nExtract ONLY events that appear in the notes, for ${artist.name}, ${past ? `that took place between ${since} and ${today} (not today), each with a full YYYY-MM-DD date_iso`: `dated ${today} or later`}. Return JSON: {"events":[{"artist":string,"title":string,"date_text":string|null,"date_iso":"YYYY-MM-DD"|"YYYY-MM"|null,"venue":string|null,"city":string|null,"source_index":number (index from the pages list that lists this event),"has_ticket_link":boolean,"excerpt":string|null (short phrase copied from the notes)}]}. Use null for anything the notes do not state. Do not invent anything. If none, {"events":[]}.`, llm);
         let events: ExtractedEvent[] = [];
         try {
-          events = JSON.parse(textOf(extract)).events ?? [];
+          events = JSON.parse(extractText).events ?? [];
         } catch {
           events = [];
         }

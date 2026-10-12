@@ -5,7 +5,7 @@ import { execSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const SECRET_NAMES = ["SUPABASE_SECRET_KEY", "TICKETMASTER_API_KEY", "GEMINI_API_KEY", "TELEGRAM_BOT_TOKEN", "RESEND_API_KEY", "CRON_SECRET"];
+const SECRET_NAMES = ["SUPABASE_SECRET_KEY", "TICKETMASTER_API_KEY", "GEMINI_API_KEY", "TELEGRAM_BOT_TOKEN", "RESEND_API_KEY", "OPENROUTER_API_KEY", "CRON_SECRET"];
 const secrets = SECRET_NAMES.map((n) => [n, (process.env[n] ?? "").trim()]).filter(([, v]) => v.length >= 12);
 console.log(`checking ${secrets.length} secret values against committable files and the browser bundle`);
 
