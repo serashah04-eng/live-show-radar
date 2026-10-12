@@ -39,7 +39,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main id="main" className="wrap flex-1 py-6 pb-24 lg:pb-8">
           {children}
         </main>
-        <BottomNav />
+        <Suspense fallback={null}>
+          <BottomNav />
+        </Suspense>
         <Suspense fallback={null}>
           <Motion />
         </Suspense>
