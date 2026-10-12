@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { EventCard } from "@/components/EventCard";
 import { FindShows } from "@/components/FindShows";
+import { PhotoTile } from "@/components/PhotoTile";
 import { requireUser } from "@/lib/auth";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { loadFeedEvents, loadPendingSearches, loadPrefs, loadRecentRuns } from "@/lib/data";
@@ -59,53 +60,47 @@ async function Dashboard() {
 
   return (
     <div className="space-y-14">
-      {/* 01 hero */}
-      <section className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-[1.4fr_1fr]">
-        <div className="mosaic bg-charcoal p-6 sm:p-10">
-          <p className="section-no">01 · Your radar</p>
-          <h1 className="wordmark mt-2 text-6xl sm:text-8xl">{APP_NAME}</h1>
-          <p className="mt-3 max-w-xl text-xl font-bold">{APP_TAGLINE}</p>
-          <p className="mt-1 max-w-xl text-sm muted">{topCity} first, all of India included. Alerts only say &ldquo;verified&rdquo; when there is evidence.</p>
+      {/* 01 hero: photo tiles with hairline gutters */}
+      <section data-gsap="mosaic" className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-[1.7fr_1fr]">
+        <PhotoTile photo="stage" priority className="min-h-[26rem] p-6 sm:p-10">
+          <p className="section-no !text-white/70">01 · Your radar</p>
+          <h1 className="wordmark mt-3 text-6xl sm:text-9xl">{APP_NAME}</h1>
+          <p className="mt-3 max-w-xl text-xl font-bold text-white">{APP_TAGLINE}</p>
+          <p className="mt-1 max-w-xl text-sm text-white/75">{topCity} first, all of India included. Alerts only say &ldquo;verified&rdquo; when there is evidence.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/start" className="btn-primary arrow">{followed.length === 0 ? "Pick your scene" : "Change my picks"}</Link>
-            <Link href="/feed" className="btn-ghost">Browse the feed</Link>
+            <Link href="/feed" className="btn-ghost !bg-black/30">Browse the feed</Link>
           </div>
-        </div>
-        <div className="bg-charcoal p-6 sm:p-8">
-          <p className="mono">Following {followed.length}</p>
-          {followed.length === 0 ? (
-            <p className="mt-3 text-sm muted">Nobody yet. Tap <strong className="text-offwhite">Pick your scene</strong> and your radar fills with shows by the artists you choose.</p>
-          ) : (
-            <ul className="mt-3 grid grid-cols-5 gap-1.5 sm:grid-cols-6 lg:grid-cols-5" aria-label="Artists you follow">
-              {followed.slice(0, 20).map((a) => {
-                const [bg, fg] = tileColor(a.name);
-                return (
-                  <li key={a.id} title={a.name}>
-                    <span className="mosaic-tile" style={{ background: bg, color: fg }}>{initials(a.name)}</span>
-                  </li>
-                );
-              })}
-              {followed.length > 20 && <li className="mosaic-tile bg-surface2 text-xs">+{followed.length - 20}</li>}
-            </ul>
-          )}
-          <dl className="mt-5 grid grid-cols-2 gap-3">
-            {[
-              ["In your feed", feed.length],
-              ["Verified", verified],
-              ["Reported 2+ sites", reported],
-              [`In ${topCity}`, inTopCity.length],
-            ].map(([label, value]) => (
-              <div key={label as string}>
-                <dt className="mono">{label}</dt>
-                <dd className="display text-4xl">{value}</dd>
-              </div>
-            ))}
-          </dl>
+        </PhotoTile>
+        <div className="grid gap-px bg-line">
+          <PhotoTile photo="crowd" className="min-h-48 p-5">
+            <p className="mono !text-white/70">Following {followed.length}</p>
+            {followed.length === 0 ? (
+              <p className="mt-2 text-sm text-white/80">Tap <strong>Pick your scene</strong> and this fills with the artists you choose.</p>
+            ) : (
+              <ul className="mt-2 grid grid-cols-6 gap-1" aria-label="Artists you follow">
+                {followed.slice(0, 12).map((a) => {
+                  const [bg, fg] = tileColor(a.name);
+                  return <li key={a.id} title={a.name}><span className="mosaic-tile" style={{ background: bg, color: fg }}>{initials(a.name)}</span></li>;
+                })}
+                {followed.length > 12 && <li className="mosaic-tile bg-black/50 text-xs text-white">+{followed.length - 12}</li>}
+              </ul>
+            )}
+          </PhotoTile>
+          <PhotoTile photo="lights" className="min-h-48 p-5">
+            <dl className="grid grid-cols-2 gap-3">
+              {[["In your feed", feed.length], ["Verified", verified], ["Reported 2+ sites", reported], [`In ${topCity}`, inTopCity.length]].map(([label, value]) => (
+                <div key={label as string}>
+                  <dt className="mono !text-white/70">{label}</dt>
+                  <dd className="display text-4xl text-white">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </PhotoTile>
         </div>
       </section>
-
       {/* marquee of the artists you picked */}
-      <div className="marquee" aria-hidden="true">
+      <div className="marquee" data-gsap="marquee" aria-hidden="true">
         <div className="marquee-track">
           {[...ticker, ...ticker].map((n, i) => <span key={i} className="marquee-item">{n}</span>)}
         </div>
@@ -115,7 +110,7 @@ async function Dashboard() {
       <FindShows pending={pending} followedCount={followed.length} />
 
       {/* 02 recommendations: your #1 city first */}
-      <section aria-labelledby="rec" className="reveal">
+      <section aria-labelledby="rec" data-gsap="rise">
         <p className="section-no">02 · Recommended</p>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <h2 id="rec" className="text-3xl sm:text-5xl">In {topCity} first</h2>
@@ -140,7 +135,7 @@ async function Dashboard() {
       </section>
 
       {/* 03 early bird */}
-      <section aria-labelledby="eb" className="reveal">
+      <section aria-labelledby="eb" data-gsap="rise">
         <p className="section-no">03 · Early-bird watch</p>
         <h2 id="eb" className="mb-4 text-3xl text-orange sm:text-5xl">Verified deadlines</h2>
         {earlyBird.length === 0 ? (
@@ -153,8 +148,60 @@ async function Dashboard() {
         )}
       </section>
 
+      {/* statement: words light up as you scroll */}
+      <section aria-label="What FrontRow does">
+        <p className="section-no mb-4">Why FrontRow</p>
+        <p className="statement max-w-5xl" data-gsap="words">
+          {"Be first to every show in India. Pick your artists, and we search, cross-check and alert you before the early-bird window closes."
+            .split(" ")
+            .map((w, i) => <span key={i} className="w">{w} </span>)}
+        </p>
+      </section>
+
+      {/* numbered how-it-works rows */}
+      <section aria-labelledby="how">
+        <p className="section-no">How it works</p>
+        <h2 id="how" className="mb-4 text-3xl sm:text-5xl">Five steps</h2>
+        <div data-gsap="stagger">
+          {[
+            ["01", "Pick", "Tap your artists, genres and cities", "/start"],
+            ["02", "Discover", "We search for their shows across India", "/feed"],
+            ["03", "Cross-check", "Two independent sites make it “reported”", "/feed"],
+            ["04", "Verify", "Evidence makes it “verified”", "/feed"],
+            ["05", "Book", "Open the booking page and decide", "/feed"],
+          ].map(([n, t, d, href]) => (
+            <Link key={n} href={href} className="num-row">
+              <span className="mono">{n}</span>
+              <span><span className="t block">{t}</span><span className="mt-1 block text-sm muted">{d}</span></span>
+              <span className="text-2xl" aria-hidden="true">{"↗"}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* featured artists list + photo band */}
+      <section aria-labelledby="feat" className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-2">
+        <div className="bg-charcoal p-6 sm:p-8">
+          <p className="section-no">Featured</p>
+          <h2 id="feat" className="mb-4 text-3xl sm:text-4xl">Your artists</h2>
+          {followed.length === 0 ? (
+            <p className="text-sm muted">Nobody yet. <Link href="/start" className="text-lime underline">Pick your scene</Link>.</p>
+          ) : (
+            <ul data-gsap="stagger">
+              {followed.slice(0, 8).map((a) => (
+                <li key={a.id} className="num-row !grid-cols-[1fr_auto] !py-3">
+                  <Link href={`/feed`} className="t !text-2xl sm:!text-3xl">{a.name}</Link>
+                  <span className="mono">Follow</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link href="/artists" className="btn-ghost arrow mt-5">See all artists</Link>
+        </div>
+        <PhotoTile photo="band" className="min-h-72" />
+      </section>
       {/* 04 health */}
-      <section aria-labelledby="health" className="reveal grid gap-4 md:grid-cols-2">
+      <section aria-labelledby="health" data-gsap="rise" className="grid gap-4 md:grid-cols-2">
         <div className="card">
           <p className="section-no">04 · Status</p>
           <h2 id="health" className="mb-3 mt-1 text-xl">Discovery</h2>

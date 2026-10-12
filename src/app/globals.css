@@ -169,3 +169,19 @@ h1, h2, h3, .display {
   .tile, .ticket { transition: transform 0.2s ease, border-color 0.2s ease; }
   .tile:hover, .ticket:hover { transform: translateY(-2px); }
 }
+/* ---- intro loader (CSS-only percent counter), numbered rows, featured list ---- */
+@property --pct { syntax: "<integer>"; initial-value: 0; inherits: false; }
+@layer components {
+  .intro { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #e8e8e8; color: #0c0e13; pointer-events: none; animation: intro-out 0.5s ease 1.6s forwards; }
+  .intro-count { counter-reset: pct var(--pct); animation: intro-count 1.5s steps(100, end) forwards; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 1.1rem; background: #fff; padding: 0.6rem 1.1rem; }
+  .intro-count::after { content: counter(pct) "%"; }
+  .intro-word { font-family: var(--font-display), Impact, sans-serif; font-size: clamp(3rem, 12vw, 9rem); text-transform: uppercase; line-height: 0.9; }
+  .num-row { display: grid; grid-template-columns: 3.5rem 1fr auto; align-items: baseline; gap: 1rem; border-top: 1px solid var(--line); padding: 1.1rem 0; transition: color 0.2s ease, padding 0.2s ease; }
+  .num-row:hover { color: var(--lime); padding-left: 0.75rem; }
+  .num-row .t { font-family: var(--font-display), Impact, sans-serif; text-transform: uppercase; font-size: clamp(1.8rem, 5vw, 3.6rem); line-height: 1; }
+  .statement { font-size: clamp(1.6rem, 4.2vw, 3.4rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
+  .statement b { color: var(--lime); font-weight: 700; }
+}
+@keyframes intro-count { to { --pct: 100; } }
+@keyframes intro-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .intro { display: none; } }
