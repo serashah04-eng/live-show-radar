@@ -75,6 +75,16 @@ export async function loadPrefs(sb: SupabaseClient, userId: string): Promise<{ p
   return { prefs, notif };
 }
 
+/** Followed artists that have never been searched, or not in the last 24 hours. */
+export async function loadPendingSearches(sb: SupabaseClient, followedIds: string[]): Promise<{ id: string; name: string }[]> {
+  if (followedIds.length === 0) return [];
+  const { data } = await sb.from("artists").select("id, name, last_searched_at").in("id", followedIds).order("name");
+  const cutoff = Date.now() - 24 * 3600 * 1000;
+  return (data ?? [])
+    .filter((a) => !a.last_searched_at || Date.parse(a.last_searched_at as string) < cutoff)
+    .map((a) => ({ id: a.id as string, name: a.name as string }));
+}
+
 export async function loadGenres(sb: SupabaseClient) {
   const { data } = await sb.from("genres").select("id, slug, name").order("name");
   return data ?? [];

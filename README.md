@@ -16,6 +16,9 @@ Editable source: [docs/components-map.svg](docs/components-map.svg) (regenerate 
 - **Never overstates certainty.** Search and AI results start as *Unconfirmed*. Two independent websites make it *Reported by 2+ sites*. Only an official API record or an owner review with an evidence URL and a quoted line makes it *Verified*. Ticket deadlines are never guessed.
 - **Alerts** on Telegram and email (independent channels, deduplicated, retried at most 3 times, failures visible).
 - **Personalised by tapping, not typing**: a 3-step "Pick your scene" flow, a 176-artist catalogue shown as tiles with genre and type filters (one tap follows and saves), 33 genres, and 115 cities grouped by region. Multiple genres use OR logic, Bengaluru is the default priority city, other cities are never hidden, and everything is saved in Supabase. Missing an artist? "Add an artist" creates one with aliases.
+- **The feed follows your picks.** Once you follow anyone, the feed defaults to **My artists**; switch to **+ my genres** or **Everything** with one tap. Following an artist starts a background search for their shows, and **Find shows now** searches every followed artist that hasn't been searched in 24 hours (one at a time, with live progress). The 30-minute scheduler only searches artists somebody follows.
+- **City priority is an ordered list.** Pick cities, then choose your #1: its shows are listed first (Bengaluru by default), then #2, and so on. Other cities are never hidden.
+- **Book show** on every event opens the stored ticket link, or else the best listing page (ticketing sites first, social posts last), and says which it is. FrontRow never sells tickets and never invents a link.
 - Seed or extend the catalogue with `node --env-file=.env.local scripts/seed-catalog.mjs` (edit `src/lib/catalog/*`). Being in the catalogue says nothing about whether an artist has shows: only discovery evidence does.
 
 ## Tech

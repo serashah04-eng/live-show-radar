@@ -1,9 +1,13 @@
 import { Suspense } from "react";
 import { ArtistPicker } from "@/components/ArtistPicker";
 import { requireUser } from "@/lib/auth";
-import { loadGenres, loadPrefs } from "@/lib/data";
+import { FindShows } from "@/components/FindShows";
+import { loadGenres, loadPendingSearches, loadPrefs } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { AddArtistForm } from "./AddArtistForm";
+
+// Following an artist starts a background search, and Find shows runs one per artist from here.
+export const maxDuration = 300;
 
 export default function ArtistsPage() {
   return (
@@ -34,8 +38,10 @@ async function Artists() {
     origin: (a.origin as string | null) ?? null,
     genres: (a.artist_genres as unknown as { genres: { slug: string } | null }[]).map((g) => g.genres?.slug).filter((s): s is string => Boolean(s)),
   }));
+  const pending = await loadPendingSearches(sb, prefs.followedArtistIds);
   return (
     <div className="mt-6 space-y-10">
+      <FindShows pending={pending} followedCount={prefs.followedArtistIds.length} />
       <ArtistPicker artists={list} genres={genres} initialFollowed={prefs.followedArtistIds} mode="live" myGenres={prefs.allGenres ? [] : prefs.genreSlugs} />
       <details className="card">
         <summary className="cursor-pointer text-lg font-bold">Can&apos;t find an artist? Add them</summary>

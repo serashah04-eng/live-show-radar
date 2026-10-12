@@ -66,7 +66,7 @@ export function planNotifications(args: {
     const channels = channelsFor(u);
     if (channels.length === 0) continue;
     // The feed applies the user's saved genres, followed artists and city rules.
-    const visible = buildFeed(events, u.prefs, {}, now).map((i) => i.event);
+    const visible = buildFeed(events, u.prefs, { scope: "genres" }, now).map((i) => i.event);
 
     for (const e of visible) {
       if (u.types.newConcert && alertableEvent(e)) {

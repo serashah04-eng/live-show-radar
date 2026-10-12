@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
+import { BookButton } from "@/components/BookButton";
 import { requireUser } from "@/lib/auth";
+import { APP_NAME } from "@/lib/brand";
+import { bookingLink } from "@/lib/feed";
 import { eventDateParts, formatDateTime, TICKET_STATUS_LABEL, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,6 +35,10 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
   if (!e) notFound();
 
   const d = eventDateParts(e);
+  const booking = bookingLink({
+    ticket_url: e.ticket_url,
+    sources: (e.event_sources as { source_url: string; source_title: string | null }[]).map((s) => ({ url: s.source_url, title: s.source_title })),
+  });
   const artists = (e.event_artists as { artists: { name: string } | null }[]).map((a) => a.artists?.name).filter(Boolean).join(" + ");
   const phases = e.ticket_phases as {
     id: string; phase: string; starts_at: string | null; ends_at: string | null; price_text: string | null;
@@ -76,12 +83,10 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
             <dd className="mt-1">{v}</dd>
           </div>
         ))}
-        {e.ticket_url && (
-          <div className="sm:col-span-2">
-            <a className="btn-primary" href={e.ticket_url} target="_blank" rel="noopener noreferrer">Open ticket page</a>
-            <p className="mt-1 text-xs muted">Opens the seller&apos;s site. You decide whether to buy.</p>
-          </div>
-        )}
+        <div className="sm:col-span-2">
+          <BookButton link={booking} large />
+          <p className="mt-2 text-xs muted">Opens the seller&apos;s or listing site. {APP_NAME} does not sell tickets, and you decide whether to buy.</p>
+        </div>
       </dl>
 
       <section aria-labelledby="tp">

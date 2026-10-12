@@ -1,7 +1,7 @@
 // Behaviour tests for the personalization rules. Run: node --test scripts/feed.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildFeed, emptyStateHints } from "../src/lib/feed.ts";
+import { buildFeed, emptyStateHints, bookingLink } from "../src/lib/feed.ts";
 import { registrableDomain, countIndependentDomains } from "../src/lib/discovery/corroboration-core.ts";
 
 const NOW = new Date("2026-10-12T00:00:00Z");
@@ -112,7 +112,7 @@ test("match reasons are transparent", () => {
   const [item] = buildFeed(events, { ...base, followedArtistIds: ["a1"], genreSlugs: ["indie-pop"] }, { city: "Bengaluru" }, NOW);
   assert.ok(item.reasons.includes("You follow Anuv Jain"));
   assert.ok(item.reasons.includes("Genre: indie-pop"));
-  assert.ok(item.reasons.includes("In your city: Bengaluru"));
+  assert.ok(item.reasons.includes("Your top city: Bengaluru"));
 });
 
 test("corroboration needs independent domains", () => {
@@ -121,4 +121,70 @@ test("corroboration needs independent domains", () => {
   assert.equal(registrableDomain("https://foo.example.co.in/y"), "example.co.in");
   assert.equal(countIndependentDomains(["https://in.bookmyshow.com/a", "https://www.bookmyshow.com/b"]), 1);
   assert.equal(countIndependentDomains(["https://in.bookmyshow.com/a", "https://livefiesta.com/b"]), 2);
+});
+
+// ---------- picks drive the feed, ordered city priority, discover scope, booking ----------
+test("once you follow artists, All genres no longer floods the feed: it follows your picks", () => {
+  const prefs = { ...base, allGenres: true, followedArtistIds: ["a2"] };
+  assert.deepEqual(ids(buildFeed(events, prefs, {}, NOW)), ["e3"]); // only The Local Train's show
+  assert.deepEqual(ids(buildFeed(events, { ...prefs, followedArtistIds: ["a1"] }, {}, NOW)).sort(), ["e1", "e2"]); // switching the pick changes the feed
+});
+
+test("a new user who follows nobody still sees everything under All genres", () => {
+  assert.equal(buildFeed(events, { ...base, allGenres: true, followedArtistIds: [] }, {}, NOW).length, 4);
+});
+
+test("Discover mode adds shows by artists you do not follow, labelled as such", () => {
+  const prefs = { ...base, allGenres: true, followedArtistIds: ["a2"] };
+  const items = buildFeed(events, prefs, { scope: "all" }, NOW);
+  assert.equal(items.length, 4);
+  assert.ok(items.find((i) => i.event.id === "e1").reasons.includes("Discover: not one of your artists"));
+  assert.ok(!items.find((i) => i.event.id === "e3").reasons.includes("Discover: not one of your artists"));
+});
+
+test("city priority is an ordered list: your #1 city comes first, then #2", () => {
+  const prefs = { ...base, allGenres: true, cities: ["Mumbai", "Bengaluru"] };
+  const items = buildFeed(events, prefs, {}, NOW);
+  assert.deepEqual(items.slice(0, 2).map((i) => i.event.city), ["Mumbai", "Bengaluru"]);
+  assert.equal(items[0].cityRank, 0);
+  assert.ok(items[0].reasons.includes("Your top city: Mumbai"));
+  assert.ok(items[1].reasons.includes("Your city #2: Bengaluru"));
+  assert.equal(items[2].cityRank, 999); // other cities are still shown, just after
+});
+
+test("Bengaluru-first is the default order", () => {
+  const items = buildFeed(events, { ...base, allGenres: true }, {}, NOW);
+  assert.equal(items[0].event.city, "Bengaluru");
+});
+
+test("Book show link: stored ticket URL first, then ticketing sites, social posts last, never invented", () => {
+  const src = (url) => ({ url, title: null });
+  assert.deepEqual(bookingLink({ ticket_url: "https://tix.example.com/e1", sources: [] }), { url: "https://tix.example.com/e1", host: "tix.example.com", kind: "ticket" });
+  const l = bookingLink({ ticket_url: null, sources: [src("https://www.instagram.com/reel/x"), src("https://blog.example.org/post"), src("https://in.bookmyshow.com/events/y")] });
+  assert.equal(l.host, "in.bookmyshow.com");
+  assert.equal(l.kind, "listing");
+  assert.equal(bookingLink({ ticket_url: null, sources: [src("https://www.instagram.com/reel/x"), src("https://blog.example.org/post")] }).host, "blog.example.org");
+  assert.equal(bookingLink({ ticket_url: null, sources: [] }), null);
+});
+test("default view is My artists once you follow anyone: genre-only matches are left out", () => {
+  const prefs = { ...base, allGenres: false, genreSlugs: ["indie-pop"], followedArtistIds: ["a2"] }; // follows The Local Train, likes indie-pop
+  assert.deepEqual(ids(buildFeed(events, prefs, {}, NOW)), ["e3"]); // Anuv Jain's indie-pop shows are NOT included
+});
+
+test("the + my genres view adds the genre matches back; Everything adds the rest", () => {
+  const prefs = { ...base, allGenres: false, genreSlugs: ["indie-pop"], followedArtistIds: ["a2"] };
+  assert.deepEqual(ids(buildFeed(events, prefs, { scope: "genres" }, NOW)).sort(), ["e1", "e2", "e3"]);
+  assert.equal(buildFeed(events, prefs, { scope: "all" }, NOW).length, 4);
+});
+
+test("following nobody falls back to genres, so a brand-new user still sees something", () => {
+  const prefs = { ...base, allGenres: false, genreSlugs: ["indie-pop"], followedArtistIds: [] };
+  assert.deepEqual(ids(buildFeed(events, prefs, {}, NOW)).sort(), ["e1", "e2"]);
+});
+
+test("each pick changes the feed: follow one artist, then another", () => {
+  const one = buildFeed(events, { ...base, allGenres: true, followedArtistIds: ["a1"] }, {}, NOW).map((i) => i.event.id).sort();
+  const two = buildFeed(events, { ...base, allGenres: true, followedArtistIds: ["a1", "a3"] }, {}, NOW).map((i) => i.event.id).sort();
+  assert.deepEqual(one, ["e1", "e2"]);
+  assert.deepEqual(two, ["e1", "e2", "e4"]);
 });

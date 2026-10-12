@@ -30,8 +30,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={null}>
           <EarlyBirdAlert />
         </Suspense>
-        <footer className="wrap border-t border-line py-6 text-xs muted">
-          {APP_NAME} informs; you decide what to attend and buy. Unverified listings are labelled and may be wrong.
+        <footer className="mt-10 border-t border-line">
+          <div className="wrap py-8">
+            <p className="bigfoot" aria-hidden="true">{APP_NAME}</p>
+            <p className="mt-4 text-xs muted">
+              {APP_NAME} informs; you decide what to attend and buy. Unverified listings are labelled and may be wrong.
+            </p>
+          </div>
         </footer>
       </body>
     </html>

@@ -2,17 +2,17 @@
 
 /* Festival After Dark. Palette: charcoal / cobalt / festival orange / off-white / slate. */
 :root {
-  --charcoal: #151821;
-  --surface: #1d2230;
-  --surface-2: #262c3d;
+  --charcoal: #0c0e13;
+  --surface: #14171f;
+  --surface-2: #1d212c;
   --cobalt: #315cff;
   --cobalt-soft: #8aa3ff; /* lighter cobalt: readable as text on charcoal */
-  --lime: #c6d800; /* primary action + selected state */
+  --lime: #c4d600; /* primary action + selected state */
   --orange: #ff7a30;
   --offwhite: #f4f5f7;
   --slate: #70798b;
   --slate-text: #a3abbd; /* slate lightened for small text contrast (AA on charcoal) */
-  --line: #2f3649;
+  --line: #272c3a;
 }
 
 @theme inline {
@@ -39,8 +39,8 @@ body {
   color: var(--offwhite);
   font-family: var(--font-body), system-ui, sans-serif;
   background-image:
-    radial-gradient(900px 420px at 85% -120px, rgba(49, 92, 255, 0.22), transparent 70%),
-    radial-gradient(700px 360px at -10% -80px, rgba(255, 122, 48, 0.12), transparent 70%);
+    radial-gradient(900px 420px at 88% -140px, rgba(196, 214, 0, 0.10), transparent 70%),
+    radial-gradient(700px 360px at -10% -100px, rgba(49, 92, 255, 0.10), transparent 70%);
   background-repeat: no-repeat;
 }
 
@@ -143,4 +143,29 @@ h1, h2, h3, .display {
   .pill-tab { @apply inline-flex min-h-9 shrink-0 cursor-pointer items-center rounded-full border border-line px-3 text-sm; }
   .pill-tab[aria-pressed="true"] { background: var(--offwhite); color: var(--charcoal); border-color: var(--offwhite); font-weight: 700; }
   .arrow::after { content: "\2197"; margin-left: 0.4rem; }
+}
+/* ---- Volt-style motion and editorial pieces ---- */
+@layer components {
+  .badge-lime { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide; background: var(--lime); color: var(--charcoal); }
+  .section-no { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--slate-text); }
+  .marquee { overflow: hidden; border-block: 1px solid var(--line); }
+  .marquee-track { display: flex; width: max-content; gap: 2.5rem; padding: 0.9rem 0; animation: marquee 38s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-item { font-family: var(--font-display), Impact, sans-serif; text-transform: uppercase; font-size: 1.6rem; letter-spacing: 0.02em; white-space: nowrap; }
+  .marquee-item::after { content: "\2726"; color: var(--lime); margin-left: 2.5rem; font-size: 1rem; }
+  .bigfoot { font-family: var(--font-display), Impact, sans-serif; text-transform: uppercase; color: var(--lime); line-height: 0.8; letter-spacing: -0.02em; font-size: clamp(4rem, 19vw, 17rem); white-space: nowrap; overflow: hidden; }
+  .mosaic-tile { @apply grid place-items-center rounded-lg text-sm font-bold; aspect-ratio: 1; font-family: var(--font-display), Impact, sans-serif; letter-spacing: 0.03em; }
+}
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; flex-wrap: wrap; width: auto; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal { animation: reveal linear both; animation-timeline: view(); animation-range: entry 0% cover 28%; }
+    @keyframes reveal { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  }
+  .tile, .ticket { transition: transform 0.2s ease, border-color 0.2s ease; }
+  .tile:hover, .ticket:hover { transform: translateY(-2px); }
 }

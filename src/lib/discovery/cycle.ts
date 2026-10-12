@@ -34,8 +34,11 @@ export async function runDiscoveryCycle(db: SupabaseClient, o: CycleOptions): Pr
   const all = await loadArtists(db);
   const { data: rotation } = await db.from("artists").select("id, last_searched_at");
   const lastSeen = new Map((rotation ?? []).map((r) => [r.id as string, r.last_searched_at as string | null]));
+  // Only artists somebody follows are worth the search quota; the rest of the catalogue waits until picked.
+  const { data: followRows } = await db.from("user_artist_follows").select("artist_id");
+  const followedIds = new Set((followRows ?? []).map((r) => r.artist_id as string));
   // never-searched first, then oldest
-  const ranked = [...all].sort(
+  const ranked = [...all].filter((a) => followedIds.has(a.id)).sort(
     (a, b) => (lastSeen.get(a.id) ? Date.parse(lastSeen.get(a.id)!) : 0) - (lastSeen.get(b.id) ? Date.parse(lastSeen.get(b.id)!) : 0),
   );
 

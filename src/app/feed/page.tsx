@@ -2,10 +2,14 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { EventCard } from "@/components/EventCard";
 import { requireUser } from "@/lib/auth";
-import { loadFeedEvents, loadGenres, loadPrefs } from "@/lib/data";
-import { buildFeed, emptyStateHints, type Filters } from "@/lib/feed";
+import { FindShows } from "@/components/FindShows";
+import { loadFeedEvents, loadGenres, loadPendingSearches, loadPrefs } from "@/lib/data";
+import { buildFeed, defaultScope, emptyStateHints, type Filters } from "@/lib/feed";
 import { INDIAN_CITIES } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+
+// "Find shows" runs a search per artist from this page; allow it the hosting maximum.
+export const maxDuration = 300;
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 
@@ -46,10 +50,13 @@ async function Feed({ searchParams }: { searchParams: SP }) {
     ticketStatus: one(sp.ticket),
     status: (STATUSES as readonly string[]).includes(status ?? "") ? (status as Filters["status"]) : "all",
     sort: (SORTS as readonly string[]).includes(sort ?? "") ? (sort as Filters["sort"]) : "relevance",
+    scope: (["mine", "genres", "all"] as const).find((s) => s === one(sp.scope)),
   };
+  const effectiveScope = filters.scope ?? defaultScope(prefs);
+  const pending = await loadPendingSearches(sb, prefs.followedArtistIds);
   const items = buildFeed(events, prefs, filters);
   const baseline = buildFeed(events, prefs, { sort: filters.sort });
-  const filtersActive = Boolean(filters.artistId || filters.genre || filters.city || filters.from || filters.to || filters.ticketStatus || filters.status !== "all");
+  const filtersActive = Boolean(filters.artistId || filters.genre || filters.city || filters.from || filters.to || filters.ticketStatus || filters.status !== "all" || effectiveScope !== defaultScope(prefs));
   const cityOptions = [...new Set([...INDIAN_CITIES, ...events.map((e) => e.city).filter((c): c is string => Boolean(c))])].sort();
 
   return (
@@ -59,6 +66,22 @@ async function Feed({ searchParams }: { searchParams: SP }) {
           Filters are temporary. Your saved preferences (genres, followed artists, cities) are in{" "}
           <Link className="text-cobalt-soft underline" href="/settings">Settings</Link>.
         </p>
+        <fieldset>
+          <legend className="label">Show me</legend>
+          {([
+            ["mine", "My artists", "Only artists you follow"],
+            ["genres", "+ my genres", "Followed artists and your saved genres"],
+            ["all", "Everything", "Discover shows by artists you don't follow"],
+          ] as const).map(([value, label, hint]) => (
+            <label key={value} className="flex cursor-pointer items-start gap-3 py-1">
+              <input type="radio" name="scope" value={value} defaultChecked={effectiveScope === value} className="mt-1 size-4 accent-[#c4d600]" />
+              <span>
+                <span className="block text-sm font-bold">{label}</span>
+                <span className="block text-xs muted">{hint}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
         <div>
           <label className="label" htmlFor="artist">Artist</label>
           <select id="artist" name="artist" defaultValue={filters.artistId ?? ""} className="field">
@@ -126,6 +149,7 @@ async function Feed({ searchParams }: { searchParams: SP }) {
       </form>
 
       <section aria-live="polite">
+        <div className="mb-4"><FindShows pending={pending} followedCount={prefs.followedArtistIds.length} /></div>
         <p className="mb-3 text-sm muted">
           Showing <strong className="text-offwhite">{items.length}</strong>
           {filtersActive && <> of {baseline.length} that match your saved preferences</>}

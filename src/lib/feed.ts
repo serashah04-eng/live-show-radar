@@ -52,12 +52,28 @@ export interface Filters {
   status?: "all" | "verified" | "corroborated" | "pending";
   ticketStatus?: string;
   sort?: "relevance" | "date" | "discovered" | "deadline";
+  /**
+   * Which shows qualify. "mine" = only artists you follow (the default once you follow anyone),
+   * "genres" = followed artists plus your saved genres, "all" = everything (discovery).
+   */
+  scope?: "mine" | "genres" | "all";
+  /** Old name for scope "all". */
+  discover?: boolean;
+}
+
+export type FeedScope = NonNullable<Filters["scope"]>;
+
+/** The scope used when none is chosen: follow artists and the feed follows them; follow nobody and genres decide. */
+export function defaultScope(prefs: Prefs): FeedScope {
+  return prefs.followedArtistIds.length > 0 ? "mine" : "genres";
 }
 
 export interface FeedItem {
   event: FeedEvent;
   reasons: string[];
   priorityCity: boolean;
+  /** Position in the user's ordered city list (0 = top priority). 999 = not a priority city. */
+  cityRank: number;
   /** Earliest VERIFIED early-bird/phase end still in the future (ms), else null. */
   deadline: number | null;
   /** True only for a verified deadline within 72 hours. */
@@ -90,13 +106,22 @@ export function buildFeed(events: FeedEvent[], prefs: Prefs, filters: Filters, n
     const followed = e.artists.filter((a) => prefs.followedArtistIds.includes(a.id));
     const genreHits = new Set<string>();
     for (const a of e.artists) for (const g of a.genreSlugs) if (prefs.genreSlugs.includes(g)) genreHits.add(g);
-    const genreMatch = prefs.allGenres || genreHits.size > 0;
-    const eligible = prefs.strictGenreMode ? genreMatch : followed.length > 0 || genreMatch;
+    // "All genres" only broadens the feed while the user follows nobody yet. Once they pick artists,
+    // the feed follows those picks, so it visibly changes every time they follow or unfollow someone.
+    const hasFollows = prefs.followedArtistIds.length > 0;
+    const genreMatchLoose = (prefs.allGenres && !hasFollows) || genreHits.size > 0;
+    const genreMatchStrict = prefs.allGenres || genreHits.size > 0;
+    const scope: FeedScope = filters.scope ?? (filters.discover ? "all" : defaultScope(prefs));
+    const eligible =
+      scope === "all" ||
+      (prefs.strictGenreMode ? genreMatchStrict : scope === "mine" ? followed.length > 0 : followed.length > 0 || genreMatchLoose);
     if (!eligible) continue;
 
     // ---- city: priority, never exclusive unless the user turned other cities off ----
     const cityKey = lc(e.city);
-    const priorityCity = cityKey !== "" && prefCities.includes(cityKey);
+    const rankIdx = cityKey === "" ? -1 : prefCities.indexOf(cityKey);
+    const priorityCity = rankIdx >= 0;
+    const cityRank = rankIdx >= 0 ? rankIdx : 999;
     if (!prefs.showOtherCities && cityKey !== "" && !priorityCity) continue;
 
     // ---- temporary filters ----
@@ -113,13 +138,14 @@ export function buildFeed(events: FeedEvent[], prefs: Prefs, filters: Filters, n
 
     const reasons: string[] = [];
     for (const a of followed) reasons.push(`You follow ${a.name}`);
-    if (prefs.allGenres) reasons.push("All genres selected");
+    if (followed.length === 0 && scope === "all") reasons.push("Discover: not one of your artists");
+    if (prefs.allGenres && !hasFollows) reasons.push("All genres selected");
     else for (const g of genreHits) reasons.push(`Genre: ${g}`);
-    if (priorityCity) reasons.push(`In your city: ${e.city}`);
+    if (priorityCity) reasons.push(cityRank === 0 ? `Your top city: ${e.city}` : `Your city #${cityRank + 1}: ${e.city}`);
     else if (e.city) reasons.push(`Other city: ${e.city}`);
     const dl = earliestVerifiedDeadline(e);
     const deadline = dl !== null && dl > now.getTime() ? dl : null;
-    out.push({ event: e, reasons, priorityCity, deadline, urgent: deadline !== null && deadline - now.getTime() < 72 * 3600 * 1000 });
+    out.push({ event: e, reasons, priorityCity, cityRank, deadline, urgent: deadline !== null && deadline - now.getTime() < 72 * 3600 * 1000 });
   }
 
   const sort = filters.sort ?? "relevance";
@@ -131,7 +157,7 @@ export function buildFeed(events: FeedEvent[], prefs: Prefs, filters: Filters, n
       const db = earliestVerifiedDeadline(b.event) ?? Number.MAX_SAFE_INTEGER;
       return da - db || t(a.event) - t(b.event);
     }
-    if (sort === "relevance" && a.priorityCity !== b.priorityCity) return a.priorityCity ? -1 : 1;
+    if (sort === "relevance" && a.cityRank !== b.cityRank) return a.cityRank - b.cityRank; // your #1 city first, then #2, ...
     return t(a.event) - t(b.event);
   });
   return out;
@@ -144,7 +170,43 @@ export function emptyStateHints(prefs: Prefs, filters: Filters): string[] {
   if (!prefs.allGenres) hints.push("Add more genres, or switch to All genres in Settings.");
   if (prefs.strictGenreMode) hints.push("Turn off strict genre mode so followed artists always appear.");
   if (!prefs.showOtherCities) hints.push("Turn on other Indian cities in Settings.");
-  if (prefs.followedArtistIds.length < 5) hints.push("Follow more artists in Artist Manager.");
+  if (prefs.followedArtistIds.length < 5) hints.push("Follow more artists in Artists, then tap Find shows.");
+  if ((filters.scope ?? (filters.discover ? "all" : defaultScope(prefs))) !== "all") hints.push("Switch the view to Everything to also see shows by artists you do not follow.");
   hints.push("Add a concert you found yourself with Add event by link.");
   return hints;
 }
+
+const BOOKING_HOSTS = ["bookmyshow", "district.in", "skillbox", "insider.in", "ticketmaster", "paytm", "eventbrite", "townscript", "ticketgenie", "thumpn", "livefiesta", "bandsintown"];
+const hostOf = (u: string) => {
+  try {
+    return new URL(u).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+};
+
+export interface BookingLink {
+  url: string;
+  host: string;
+  /** "ticket" = a ticket link stored for the event. "listing" = a page that lists the event (may link to tickets). */
+  kind: "ticket" | "listing";
+}
+
+/**
+ * Where "Book show" should send the user. Never invents a link: it is the stored ticket URL, else the best
+ * source page (ticketing sites first, social posts last).
+ */
+export function bookingLink(e: Pick<FeedEvent, "ticket_url" | "sources">): BookingLink | null {
+  if (e.ticket_url && hostOf(e.ticket_url)) return { url: e.ticket_url, host: hostOf(e.ticket_url), kind: "ticket" };
+  const ranked = e.sources
+    .map((s) => ({ url: s.url, host: hostOf(s.url) }))
+    .filter((s) => s.host)
+    .sort((a, b) => score(a.host) - score(b.host));
+  const best = ranked[0];
+  return best ? { url: best.url, host: best.host, kind: "listing" } : null;
+}
+const score = (host: string) => {
+  if (BOOKING_HOSTS.some((h) => host.includes(h))) return 0;
+  if (/instagram|facebook|twitter|x\.com|youtube/.test(host)) return 2;
+  return 1;
+};
