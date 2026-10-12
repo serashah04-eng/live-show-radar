@@ -25,13 +25,12 @@ export function Wizard({
   return (
     <form action={action}>
       <input type="hidden" name="all_genres" value="1" />
-      <h1 className="text-4xl sm:text-6xl">Who do you want alerts for?</h1>
-      <p className="mt-2 muted">Tap artists to follow them. Pick your city. That is all.</p>
+      <h1>Pick your scene</h1>
+      <p className="mt-1 text-sm muted">Choose your cities on the left and your artists on the right.</p>
 
-      <div className="mt-6"><CityPicker initial={initial.cities} compact /></div>
-
-      <div className="mt-6">
-        <ArtistPicker artists={artists} genres={genres} initialFollowed={initial.followed} mode="draft" />
+      <div className="mt-4 grid gap-6 lg:grid-cols-[17rem_1fr]">
+        <div className="rounded-xl border border-line bg-surface p-3 lg:sticky lg:top-3 lg:self-start"><CityPicker initial={initial.cities} compact /></div>
+        <div><ArtistPicker artists={artists} genres={genres} initialFollowed={initial.followed} mode="draft" /></div>
       </div>
 
       <div className="sticky bottom-0 -mx-4 mt-6 flex flex-wrap items-center gap-3 border-t border-line bg-charcoal/95 px-4 py-3 backdrop-blur" aria-live="polite">

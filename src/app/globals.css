@@ -13,6 +13,9 @@
   --slate: #70798b;
   --slate-text: #a3abbd; /* slate lightened for small text contrast (AA on charcoal) */
   --line: #272c3a;
+  --tag-ok: #3ddc84; /* verified / confirmed */
+  --tag-likely: #7fa0ff; /* reported by 2+ sites */
+  --tag-unconf: #f2b84b; /* unconfirmed: check the source */
   --ink: #0c0e13; /* dark text for use ON lime/orange, the same in both themes */
 }
 
@@ -26,6 +29,9 @@
   --slate: #5a6275;
   --slate-text: #4b5365;
   --line: #d8d4c8;
+  --tag-ok: #12803f;
+  --tag-likely: #2447d8;
+  --tag-unconf: #8a5a00;
   color-scheme: light;
 }
 @media (prefers-color-scheme: light) {
@@ -38,6 +44,9 @@
     --slate: #5a6275;
     --slate-text: #4b5365;
     --line: #d8d4c8;
+    --tag-ok: #12803f;
+    --tag-likely: #2447d8;
+    --tag-unconf: #8a5a00;
     color-scheme: light;
   }
 }
@@ -60,6 +69,7 @@
 
 html {
   color-scheme: dark;
+  font-size: 14px; /* everything is rem based: this shrinks text, buttons and spacing together */
 }
 :root[data-theme="light"] body { background-image: none; }
 
@@ -111,9 +121,9 @@ h1, h2, h3, .display {
   .chip input { @apply sr-only; }
 
   .badge { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide; }
-  .badge-verified { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-cobalt/20 text-cobalt-soft ring-1 ring-cobalt/50; }
-  .badge-corroborated { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-surface2 text-offwhite ring-1 ring-slate; }
-  .badge-pending { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-transparent ring-1 ring-line; color: var(--slate-text); }
+  .badge-verified { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ring-1; background: color-mix(in srgb, var(--tag-ok) 18%, transparent); color: var(--tag-ok); --tw-ring-color: color-mix(in srgb, var(--tag-ok) 55%, transparent); }
+  .badge-corroborated { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ring-1; background: color-mix(in srgb, var(--tag-likely) 18%, transparent); color: var(--tag-likely); --tw-ring-color: color-mix(in srgb, var(--tag-likely) 55%, transparent); }
+  .badge-pending { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ring-1; background: color-mix(in srgb, var(--tag-unconf) 16%, transparent); color: var(--tag-unconf); --tw-ring-color: color-mix(in srgb, var(--tag-unconf) 55%, transparent); }
   .badge-urgent { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-orange text-ink; }
   .badge-warn { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide bg-transparent text-orange ring-1 ring-orange/60; }
 
@@ -219,3 +229,10 @@ h1, h2, h3, .display {
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) .text-lime { color: #5f6900 !important; }
 }
+
+/* headings: smaller and consistent whatever the page asks for */
+h1 { font-size: clamp(1.6rem, 3.2vw, 2.4rem) !important; }
+h2 { font-size: clamp(1.15rem, 2vw, 1.5rem) !important; }
+h3 { font-size: 1.05rem !important; }
+
+.text-ok { color: var(--tag-ok); }

@@ -28,6 +28,9 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
     loadPrefs(sb, user.id),
   ]);
   const admin = await isAdminUser();
+  // a channel counts as on when it can really deliver: your own setting, or the site-wide default sender
+  const tgOn = Boolean((notif.telegram_enabled && notif.telegram_chat_id) || process.env.TELEGRAM_CHAT_ID);
+  const mailOn = Boolean((notif.email_enabled && notif.email_address) || process.env.ALERT_TO_EMAIL);
   const pending = admin ? await loadPendingSearches(sb, prefs.followedArtistIds) : [];
 
   // newsroom: YOUR artists by default; every upcoming show only after "Show all" is pressed
@@ -45,8 +48,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
   return (
     <div className="space-y-12">
       <p className="text-sm muted" role="status">
-        Alerts: Telegram <strong className={notif.telegram_enabled ? "text-lime" : "text-orange"}>{notif.telegram_enabled && notif.telegram_chat_id ? "on" : "not set up"}</strong>
-        {" · "}Email <strong className={notif.email_enabled && notif.email_address ? "text-lime" : "text-orange"}>{notif.email_enabled && notif.email_address ? "on" : "not set up"}</strong>
+        Alerts: Telegram <strong className={tgOn ? "text-ok" : "text-orange"}>{tgOn ? "on" : "not set up"}</strong>
+        {" · "}Email <strong className={mailOn ? "text-ok" : "text-orange"}>{mailOn ? "on" : "not set up"}</strong>
         {" · "}<Link href="/settings" className="underline underline-offset-2">Change</Link>
       </p>
       <Newsroom upcoming={upcoming} followedIds={prefs.followedArtistIds} showAll={showAll} />

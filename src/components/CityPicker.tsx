@@ -41,18 +41,15 @@ export function CityPicker({ initial, name = "cities", compact = false }: { init
           {order.slice(1, 4).map((c) => <button key={c} type="button" className="mr-2 underline underline-offset-2" onClick={() => makeFirst(c)}>make {c} #1</button>)}
         </p>
       )}
-      <details className="mt-3" open={!compact}>
-        <summary className="cursor-pointer text-sm font-semibold">More cities ({more.length})</summary>
-        <div className="mt-2">
-          <label htmlFor="city-search" className="sr-only">Find a city</label>
-          <input id="city-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a city" className="field max-w-xs" />
-          <div className="mt-2 flex flex-wrap gap-2">
-            {more.map(chip)}
-            {more.length === 0 && <p className="muted text-sm">No city matches &ldquo;{q}&rdquo;.</p>}
-          </div>
-          <p className="mono mt-2">{INDIA_REGIONS.length} regions · {ALL_INDIA_CITIES.length} cities</p>
+      <div className="mt-3">
+        <label htmlFor="city-search" className="sr-only">Search cities</label>
+        <input id="city-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search any city" className="field !min-h-8 !text-xs" />
+        <div className={`mt-2 flex flex-wrap gap-1.5 overflow-y-auto ${compact ? "max-h-32" : "max-h-72"}`}>
+          {(needle ? more : more.slice(0, compact ? 24 : more.length)).map(chip)}
+          {more.length === 0 && <p className="muted text-xs">No city matches &ldquo;{q}&rdquo;.</p>}
         </div>
-      </details>
+        <p className="mono mt-2">{order.length} selected · {INDIA_REGIONS.length} regions, {ALL_INDIA_CITIES.length} cities</p>
+      </div>
     </div>
   );
 }

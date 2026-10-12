@@ -58,7 +58,7 @@ export function Newsroom({ upcoming, followedIds, showAll }: { upcoming: FeedIte
           <h1 id="newsroom" className="text-4xl sm:text-6xl">{showAll ? "Every show in India" : "Your favourites, coming up"}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <p className="mono">{upcoming.length} upcoming shows{newest ? ` · latest find ${timeAgo(newest)}` : ""}</p>
+          <p className="text-xs muted">{upcoming.length} upcoming shows{newest ? ` · newest added ${timeAgo(newest)}` : ""}</p>
           {showAll ? <Link href="/" className="btn-ghost">Back to favourites</Link> : <Link href="/?all=1" className="btn-primary">Show all genres and artists</Link>}
         </div>
       </div>

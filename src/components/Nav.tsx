@@ -4,6 +4,7 @@ import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { APP_NAME } from "@/lib/brand";
 import { isLocalOwnerMode } from "@/lib/local-mode";
 import { isTrialMode } from "@/lib/trial";
+import { NavLinks } from "./NavLinks";
 import { ThemeToggle } from "./ThemeToggle";
 import { MenuOverlay, type MenuLink } from "./MenuOverlay";
 
@@ -40,17 +41,26 @@ export async function Nav() {
         {user && !local && isTrialMode() && (
           <span className="badge-warn" title="Any email and any password works here. Not for real data.">Trial build</span>
         )}
-        <nav aria-label="Main" className="ml-auto hidden items-center gap-1 md:flex">
+        {user && (
+          <form action="/search" method="get" role="search" className="ml-auto hidden flex-1 sm:block sm:max-w-xs">
+            <label htmlFor="global-search" className="sr-only">Search artists, cities and venues</label>
+            <input id="global-search" name="q" type="search" placeholder="Search artist, city or venue" className="field !min-h-8 !rounded-full !px-3 !text-xs" />
+          </form>
+        )}
+        <nav aria-label="Main" className={`${user ? "" : "ml-auto"} hidden items-center gap-0.5 lg:flex`}>
           {user && (
-            <>
-              <Link href="/feed" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Feed</Link>
-              <Link href="/start" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Pick your scene</Link>
-              <Link href="/favourites" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Favourites</Link>
-              <Link href="/artists" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Artists</Link>
-            </>
+            <NavLinks
+              items={[
+                { href: "/", label: "Dashboard" },
+                { href: "/feed", label: "Feed" },
+                { href: "/start", label: "Pick your scene" },
+                { href: "/favourites", label: "Favourites" },
+                { href: "/artists", label: "Artists" },
+              ]}
+            />
           )}
         </nav>
-        <div className={user ? "" : "ml-auto"}>
+        <div className={user ? "ml-auto sm:ml-0" : "ml-auto"}>
           <ThemeToggle />
         </div>
       </div>
