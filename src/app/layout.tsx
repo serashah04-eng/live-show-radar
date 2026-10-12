@@ -1,3 +1,4 @@
+import { BottomNav } from "@/components/BottomNav";
 import type { Metadata } from "next";
 import { Anton, Space_Grotesk } from "next/font/google";
 import Link from "next/link";
@@ -35,9 +36,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={<header className="h-16 border-b border-line" />}>
           <Nav />
         </Suspense>
-        <main id="main" className="wrap flex-1 py-8">
+        <main id="main" className="wrap flex-1 py-6 pb-24 lg:pb-8">
           {children}
         </main>
+        <BottomNav />
         <Suspense fallback={null}>
           <Motion />
         </Suspense>

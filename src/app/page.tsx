@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { EventCard } from "@/components/EventCard";
 import { FindShows } from "@/components/FindShows";
+import { HeroNext } from "@/components/HeroNext";
 import { Newsroom } from "@/components/Newsroom";
 import { isAdminUser, requireUser } from "@/lib/auth";
 import { loadFeedEvents, loadPendingSearches, loadPrefs } from "@/lib/data";
@@ -40,6 +41,9 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
   const topCity = prefs.cities[0] ?? "Bengaluru";
   const earlyBird = mine.filter((i) => i.deadline !== null).sort((a, b) => (a.deadline as number) - (b.deadline as number));
   const ebReported = mine.filter((i) => i.deadline === null && i.event.phases.some((p) => p.phase === "early_bird"));
+  // the hero: the next upcoming show among your favourites, else the next show anywhere
+  const heroItem = mine.find((i) => !i.isPast) ?? upcoming[0] ?? null;
+  const heroFav = Boolean(heroItem?.event.artists.some((a) => prefs.followedArtistIds.includes(a.id)));
   const history = buildFeed(events, prefs, { when: "past", sort: "relevance" });
   const allArtists = [...new Map(events.flatMap((e) => e.artists).map((a) => [a.id, a])).values()];
   const phCtx = { artists: allArtists, prefs, now: new Date() };
@@ -47,6 +51,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
 
   return (
     <div className="space-y-12">
+      <HeroNext item={heroItem} isFav={heroFav} />
+
       <p className="text-sm muted" role="status">
         Alerts: Telegram <strong className={tgOn ? "text-ok" : "text-orange"}>{tgOn ? "on" : "not set up"}</strong>
         {" · "}Email <strong className={mailOn ? "text-ok" : "text-orange"}>{mailOn ? "on" : "not set up"}</strong>
@@ -57,7 +63,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: strin
       {admin ? (
         <FindShows pending={pending} followedCount={prefs.followedArtistIds.length} />
       ) : (
-        prefs.followedArtistIds.length > 0 && <p className="text-sm muted" role="status">We are watching ${prefs.followedArtistIds.length} artist${prefs.followedArtistIds.length === 1 ? "" : "s"} for new India shows around the clock. You get an alert the moment one is announced.</p>
+        prefs.followedArtistIds.length > 0 && <p className="text-sm muted" role="status">We are watching {prefs.followedArtistIds.length} artist{prefs.followedArtistIds.length === 1 ? "" : "s"} for new India shows around the clock. You get an alert the moment one is announced.</p>
       )}
 
       <section aria-labelledby="rec">

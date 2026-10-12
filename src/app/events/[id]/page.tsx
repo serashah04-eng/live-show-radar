@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ArtistAvatar } from "@/components/ArtistAvatar";
+import { ArtistPhoto } from "@/components/ArtistPhoto";
+import { artistImage } from "@/lib/artist-images";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookButton } from "@/components/BookButton";
 import { requireUser } from "@/lib/auth";
@@ -66,7 +67,20 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
           <StatusBadge event={e} />
           <span className="badge-pending">{TICKET_STATUS_LABEL[e.ticket_status] ?? e.ticket_status}</span>
         </div>
-        <div className="mt-3 flex items-center gap-4"><ArtistAvatar name={firstArtist} size={88} /><h1 className="text-4xl sm:text-6xl">{artists || e.title}</h1></div>
+        <div className="hero-card relative mt-3 overflow-hidden rounded-3xl border border-line">
+          {artistImage(firstArtist)?.url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={artistImage(firstArtist)!.url} alt="" aria-hidden="true" referrerPolicy="no-referrer" className="absolute inset-0 size-full scale-125 object-cover opacity-30 blur-2xl" />
+          )}
+          <div className="relative flex flex-wrap items-center gap-5 p-5 sm:p-7">
+            <div className="size-28 shrink-0 -rotate-3 overflow-hidden rounded-3xl border-4 border-white/90 shadow-[5px_5px_0_rgba(0,0,0,0.45)] sm:size-36"><ArtistPhoto name={firstArtist} /></div>
+            <div className="min-w-0">
+              <p className="sticker !static inline-block">{d.month} {d.day}</p>
+              <h1 className="mt-2 break-words text-white">{artists || e.title}</h1>
+              <p className="mt-1 text-sm text-white/80">{e.city ?? "City to be announced"} · {d.full}</p>
+            </div>
+          </div>
+        </div>
         <p className="mt-2 text-lg">{e.title}</p>
       </div>
 

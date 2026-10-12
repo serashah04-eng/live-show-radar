@@ -236,3 +236,29 @@ h2 { font-size: clamp(1.15rem, 2vw, 1.5rem) !important; }
 h3 { font-size: 1.05rem !important; }
 
 .text-ok { color: var(--tag-ok); }
+
+/* ---- fun layer ---- */
+.hero-card {
+  background:
+    radial-gradient(520px 260px at 8% 0%, color-mix(in srgb, var(--lime) 38%, transparent), transparent 70%),
+    radial-gradient(520px 300px at 95% 100%, color-mix(in srgb, var(--cobalt) 55%, transparent), transparent 70%),
+    radial-gradient(380px 220px at 60% 10%, color-mix(in srgb, var(--orange) 40%, transparent), transparent 70%),
+    #0f1220;
+  color: #fff;
+}
+:root[data-theme="light"] .hero-card { background:
+    radial-gradient(520px 260px at 8% 0%, color-mix(in srgb, var(--lime) 55%, transparent), transparent 70%),
+    radial-gradient(520px 300px at 95% 100%, color-mix(in srgb, var(--cobalt) 35%, transparent), transparent 70%),
+    radial-gradient(380px 220px at 60% 10%, color-mix(in srgb, var(--orange) 45%, transparent), transparent 70%),
+    #1b2038; }
+.sticker {
+  position: absolute; top: -10px; left: -8px; z-index: 2; transform: rotate(-8deg);
+  background: var(--lime); color: var(--ink); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 8px; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+}
+.sticker.\!static { position: static; transform: rotate(-3deg); }
+.heart-pop { animation: heartpop 0.4s ease; }
+@keyframes heartpop { 0% { transform: scale(1); } 40% { transform: scale(1.45) rotate(-8deg); } 100% { transform: scale(1); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(-1deg); } }
+@media (prefers-reduced-motion: no-preference) { .hero-card .-rotate-3 { animation: floaty 5s ease-in-out infinite; } }
+@media (prefers-reduced-motion: reduce) { .heart-pop { animation: none; } }
