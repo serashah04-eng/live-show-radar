@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { setFollow } from "@/app/artists/actions";
+import { setFollow, setFollowMany } from "@/app/artists/actions";
 import { artistImage } from "@/lib/artist-images";
 
 export interface MyArtist {
@@ -38,18 +38,36 @@ export function MyArtists({ artists }: { artists: MyArtist[] }) {
     });
   };
 
+  const clearAll = () => {
+    if (!window.confirm(`Remove all ${list.length} artists from My artists? You will stop getting their alerts.`)) return;
+    const before = list;
+    setError(null);
+    setList([]);
+    startTransition(async () => {
+      const r = await setFollowMany(before.map((a) => a.id), false);
+      if (!r.ok) {
+        setList(before);
+        setError("That didn't save. Check your connection and try again.");
+      }
+    });
+  };
+
   if (list.length === 0) {
     return (
       <div className="card">
         <p>No favourite artists yet.</p>
         <p className="mt-1 text-sm muted">Add the artists you love. Results and alerts are based only on this list.</p>
-        <Link href="/artists?add=1" className="btn-primary mt-3">Add artists</Link>
+        <Link href="/artists" className="btn-primary mt-3">Add artists</Link>
       </div>
     );
   }
   return (
     <div>
       {error && <p className="notice-err mb-3" role="alert">{error}</p>}
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="mono">{list.length} artists in your collection</p>
+        <button type="button" className="btn-ghost !min-h-8 !px-3 text-xs" onClick={clearAll}>Clear all</button>
+      </div>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {list.map((a) => {
           const img = artistImage(a.name)?.url;

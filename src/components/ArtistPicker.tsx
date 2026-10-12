@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { setFollow } from "@/app/artists/actions";
+import { setFollow, setFollowMany } from "@/app/artists/actions";
 import { artistImage } from "@/lib/artist-images";
 
 export interface PickerArtist {
@@ -104,6 +104,34 @@ export function ArtistPicker({
       });
   };
 
+  const bulk = (ids: string[], follow: boolean) => {
+    setError(null);
+    setFollowed((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) {
+        if (follow) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+    if (mode === "live")
+      startTransition(async () => {
+        const r = await setFollowMany(ids, follow);
+        if (!r.ok) {
+          setFollowed((prev) => {
+            const next = new Set(prev);
+            for (const id of ids) {
+              if (follow) next.delete(id);
+              else next.add(id);
+            }
+            return next;
+          });
+          setError("That didn't save. Check your connection and try again.");
+        }
+      });
+  };
+  const allShownChosen = shown.length > 0 && shown.every((a) => followed.has(a.id));
+
   const chosen = [...followed].map((id) => byId.get(id)).filter((a): a is PickerArtist => Boolean(a));
 
   return (
@@ -127,7 +155,15 @@ export function ArtistPicker({
       {/* 2. artists of that genre, or search results from any genre */}
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
         <p className="mono">2 · {needle ? `Search results (${shown.length})` : picked.size ? `${[...picked].map((g) => genreName.get(g) ?? g).join(" + ")}: ${shown.length} artists` : "Pick the artists you follow"}</p>
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
+          {shown.length > 0 && (
+            <button type="button" className="btn-ghost !min-h-8 !px-3 text-xs" onClick={() => bulk(shown.map((a) => a.id), !allShownChosen)}>
+              {allShownChosen ? `Unselect these ${shown.length}` : `Choose all ${shown.length} shown`}
+            </button>
+          )}
+          {followed.size > 0 && (
+            <button type="button" className="btn-ghost !min-h-8 !px-3 text-xs" onClick={() => bulk([...followed], false)}>Clear all ({followed.size})</button>
+          )}
           <label htmlFor="artist-search" className="sr-only">Search any artist</label>
           <input id="artist-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search any artist, any genre" className="field w-64 max-w-full" />
         </div>
