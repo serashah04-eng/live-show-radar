@@ -43,11 +43,11 @@ Working and tested:
 - UI: lime `#c4d600` on near-black, inspired by voltlites.com (UX effects re-implemented with GSAP ScrollTrigger; placeholder Unsplash photos; CSS percent loader; marquee; numbered rows).
 - Tests: `node --test scripts/*.test.mjs` (63 unit tests), DB checks, secret scan.
 
-Data in DB (2026-10-12 ~18:00): 35 events (26 past, 9 upcoming), 48 source links. Past shows found for Anuv Jain, Arijit Singh, AP Dhillon, Prateek Kuhad. **Gemini free quota hit HTTP 429 during the bulk fill**, so most artists are still unsearched.
+Data in DB (2026-10-12 ~18:00): 35 events (26 past, 9 upcoming), 48 source links. Past shows found for Anuv Jain, Arijit Singh, AP Dhillon, Prateek Kuhad. **Google Search grounding returned HTTP 429 (RESOURCE_EXHAUSTED) during the bulk fill** while plain Gemini calls still return 200, so only the search-grounding quota is exhausted. The key's billing plan is UNKNOWN to the assistant (do not assume free or paid): check https://aistudio.google.com/usage and the Google Cloud billing link for the key's project. Most artists are still unsearched.
 
 ## 4. TODO (priority order)
 
-1. **Wait for / fix Gemini quota** (429 RESOURCE_EXHAUSTED): re-run `node --env-file=.env.local scripts/fill-data.mjs --parallel=2` later (daily/minute limits reset), or use a second key / paid tier. Use `--parallel=2` to avoid rate limits.
+1. **Fix the Google Search grounding quota** (429 RESOURCE_EXHAUSTED; plain calls work): in Google AI Studio check the key's tier and grounding limit, link a billing account to the key's Google Cloud project if it is not on a paid tier, or wait for the limit to reset. Then re-run `node --env-file=.env.local scripts/fill-data.mjs --parallel=2` (it now stops itself on the first 429).
 2. Supabase Auth → URL Configuration: set **Site URL** to the Vercel domain and redirect `https://live-show-radar-gamma.vercel.app/**` (only matters when `TRIAL_MODE=false`).
 3. Test email delivery: set `ALERT_TO_EMAIL` (the Resend account email; free test sender `onboarding@resend.dev` only delivers to that address) then run `node --env-file=.env.local scripts/test-notify-live.mjs --email`.
 4. Check `APP_BASE_URL` on Vercel = `https://live-show-radar-gamma.vercel.app` (it already exists; value unseen).
@@ -77,7 +77,7 @@ DB migrations are in `supabase/migrations/` (applied by pasting into the Supabas
 - **Hidden/background browser tabs never fire `requestAnimationFrame`**, so React's streamed Suspense content is never revealed and the page looks stuck on "Loading…". It is a test-environment artifact; front the tab.
 - Next 16 + Cache Components: anything reading cookies / `searchParams` / `usePathname()` must be inside `<Suspense>`; `middleware` is `proxy.ts`; read `node_modules/next/dist/docs/` before using Next APIs.
 - `gemini-2.5-flash` is closed to new accounts (404) although it is in the model list; use `gemini-flash-latest`. The grounded call returns no grounding metadata if you demand JSON-only in the same call; the code does search (prose) then extraction (JSON) in two calls and retries when no sources come back.
-- Gemini free tier throttles hard: 3–4 parallel grounded searches work for ~2 minutes then 429.
+- Search grounding has its own quota, separate from normal Gemini calls: 3–4 parallel grounded searches worked for ~2 minutes then every grounded call returned 429 while plain calls stayed 200. Each artist can use up to 3 search attempts + 1 extraction call, so quota drains fast; keep parallelism at 2.
 - Supabase "Confirm email" + redirect URL: localhost:3000 may belong to another project; dev ports are auto-assigned.
 - PowerShell: `Resolve-Path` treats `[id]` in `src/app/events/[id]` as a wildcard — use the Edit tool. `Set-Content -Encoding utf8` adds a BOM that breaks JSON/ts parsing; write with UTF8 no-BOM.
 - Vercel Hobby cron = once a day. Vercel sends `Authorization: Bearer $CRON_SECRET` to cron paths automatically.
@@ -110,3 +110,4 @@ Format: **date time — title** · WHY · WHAT · FILES
 
 <!-- new entries are appended below by scripts/log-change.mjs -->
 - **2026-10-12 18:05 IST — Pushed history/filters/placeholders/context file to GitHub** · Owner required GitHub and local to stay identical and a handover file for another Claude · Committed and pushed all pending work; production build, tsc, lint, 63 unit tests, DB checks and secret scan (122 files) all passed first · `CONTEXT_MEMORY.md, scripts/log-change.mjs, src/lib/feed.ts, src/app/feed/page.tsx, src/app/page.tsx, src/components/EventCard.tsx, scripts/fill-data.mjs`
+- **2026-10-12 18:08 IST — Handle Google Search quota (429) explicitly; correct the 'free tier' claim** · Assistant wrongly called the quota 'free'; test showed plain Gemini calls return 200 and only search-grounding calls return 429, plan is unknown · fill-data stops on first 429; Find shows explains quota and points to AI Studio billing; handover file corrected · `scripts/fill-data.mjs, src/components/FindShows.tsx, CONTEXT_MEMORY.md`

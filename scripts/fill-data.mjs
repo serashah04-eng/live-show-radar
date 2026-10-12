@@ -25,8 +25,9 @@ for (let i = 0; i < Math.max(PAST.length, UPCOMING.length); i++) {
 
 let next = 0;
 const totals = { past: 0, upcoming: 0, tasks: 0, empty: 0, failed: 0 };
+let quotaHit = false; // stop everything as soon as Google reports the search quota is used up
 async function worker(w) {
-  while (next < tasks.length && Date.now() - started < budgetMs) {
+  while (next < tasks.length && Date.now() - started < budgetMs && !quotaHit) {
     const t = tasks[next++];
     const id = idOf.get(normalizeName(t.name));
     if (!id) continue;
@@ -36,6 +37,7 @@ async function worker(w) {
         mode: t.mode, sinceDate: "2025-01-01", force: true, budgetMs: 150_000,
       });
       totals.tasks++;
+      if (r.error && /429|RESOURCE_EXHAUSTED/i.test(String(r.error))) { quotaHit = true; console.log("Google Search quota reached (HTTP 429). Stopping so no more calls are wasted."); }
       totals[t.mode] += r.created;
       if (r.status === "no_sources" || r.status === "failed") totals.failed++;
       else if (r.found === 0) totals.empty++;
@@ -49,7 +51,7 @@ async function worker(w) {
 }
 await Promise.all(Array.from({ length: parallel }, (_, i) => worker(i + 1)));
 const count = async (q) => (await q).count;
-console.log("\nSUMMARY", JSON.stringify(totals));
+console.log("\nSUMMARY", JSON.stringify(totals), quotaHit ? "(stopped early: search quota reached)" : "");
 console.log("events in database:", await count(db.from("events").select("*", { count: "exact", head: true })),
   "| past:", await count(db.from("events").select("*", { count: "exact", head: true }).lt("starts_at", new Date().toISOString())),
   "| sources:", await count(db.from("event_sources").select("*", { count: "exact", head: true })));

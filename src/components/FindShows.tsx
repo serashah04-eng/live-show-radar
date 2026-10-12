@@ -20,7 +20,12 @@ const describe = (r: Awaited<ReturnType<typeof discoverForArtist>>): { text: str
     case "no_sources":
       return { ok: false, text: "the search came back empty, try again in a bit" };
     default:
-      return { ok: false, text: r.error ?? "search failed" };
+      return {
+        ok: false,
+        text: /429|RESOURCE_EXHAUSTED/i.test(r.error ?? "")
+          ? "the Google Search quota for this API key is used up for now. Check the key's plan and billing in Google AI Studio, or try again later"
+          : r.error ?? "search failed",
+      };
   }
 };
 
