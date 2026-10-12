@@ -48,13 +48,25 @@ test("a channel without a recipient is skipped, not faked", () => {
   assert.deepEqual(p.channels.map((c) => c.channel), ["email"]);
 });
 
-test("unconfirmed single-source events never alert", () => {
-  assert.equal(plan({ events: [ev("e1", { verification_status: "pending_verification" })] }).length, 0);
+test("unverified single-source events DO alert (labelled UNVERIFIED with the warning)", () => {
+  assert.equal(plan({ events: [ev("e1", { verification_status: "pending_verification" })] }).length, 1);
+  const m = composeAlert({ kind: "new_concert", artists: "A", title: "T", venue: null, city: "Mumbai", dateLabel: "Date not announced", verified: false, corroborated: false, ticketUrl: null, sourceLinks: [], eventUrl: null });
+  assert.match(m.emailText, /UNVERIFIED: Non-credible or unverified source\. Please check the official ticketer or promoter before acting\./);
+  assert.match(m.emailText, /Early bird: not stated/);
 });
 
-test("corroborated events alert, but not when sources conflict", () => {
+test("rejected, stale and already-happened events never alert", () => {
+  assert.equal(plan({ events: [ev("e1", { verification_status: "rejected" })] }).length, 0);
+  assert.equal(plan({ events: [ev("e2", { verification_status: "stale" })] }).length, 0);
+  assert.equal(plan({ events: [ev("e3", { verification_status: "pending_verification", starts_at: "2020-01-01T00:00:00Z" })] }).length, 0);
+});
+
+test("corroborated events alert as LIKELY; conflicts still alert and say sources disagree", () => {
   assert.equal(kinds(plan({ events: [ev("e1", { verification_status: "pending_verification", corroborated: true })] })).join(), "new_concert");
-  assert.equal(plan({ events: [ev("e1", { verification_status: "pending_verification", corroborated: true, has_conflict: true })] }).length, 0);
+  assert.equal(plan({ events: [ev("e1", { verification_status: "pending_verification", corroborated: true, has_conflict: true })] }).length, 1);
+  const m = composeAlert({ kind: "new_concert", artists: "A", title: "T", venue: null, city: null, dateLabel: "x", verified: false, corroborated: true, conflict: true, ticketUrl: null, sourceLinks: [], eventUrl: null });
+  assert.match(m.emailText, /LIKELY/);
+  assert.match(m.emailText, /Sources disagree/);
 });
 
 test("sample events never alert", () => {
@@ -131,11 +143,11 @@ test("retry rules: sent is a duplicate, fresh failure waits, old failure retries
 test("messages state certainty honestly and include evidence for verified deadlines", () => {
   const base = { kind: "new_concert", artists: "Anuv Jain", title: "Route 143", venue: "EVP", city: "Chennai", dateLabel: "Sat 31 Oct", verified: false, corroborated: true, ticketUrl: null, sourceLinks: [{ url: "https://a.com/x", label: "a.com" }], eventUrl: null };
   const m = composeAlert(base);
-  assert.match(m.emailText, /not confirmed by an official source/i);
-  assert.match(m.subject, /not confirmed/);
+  assert.match(m.emailText, /LIKELY: reported by 2\+ independent websites, not confirmed by the official/i);
+  assert.match(m.subject, /\(likely\)/);
   const eb = composeAlert({ ...base, kind: "early_bird_verified", verified: true, phase: { name: "early bird", endsLabel: "14 Oct", evidenceUrl: "https://a.com/x", excerpt: "ends 14 Oct", price: null } });
   assert.match(eb.emailText, /Evidence: https:\/\/a\.com\/x/);
-  assert.match(eb.emailText, /Verified\./);
+  assert.match(eb.emailText, /CONFIRMED/);
   const t = composeAlert({ ...base, kind: "test" });
   assert.match(t.emailText, /not a real concert/i);
 });

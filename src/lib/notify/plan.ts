@@ -42,11 +42,15 @@ function channelsFor(u: NotifyUser) {
   return out;
 }
 
-/** Only evidence-backed information may trigger alerts: verified, or corroborated without conflict. */
-export function alertableEvent(e: FeedEvent): boolean {
+/**
+ * Who gets alerted about what. Every real, upcoming, non-rejected show alerts, labelled CONFIRMED / LIKELY / UNVERIFIED
+ * in the message (an unverified show carries the "check the official ticketer" warning). Samples never alert.
+ */
+export function alertableEvent(e: FeedEvent, now: Date = new Date()): boolean {
   if (e.is_sample) return false;
-  if (e.verification_status === "verified") return true;
-  return e.verification_status === "pending_verification" && e.corroborated && !e.has_conflict;
+  if (e.verification_status === "rejected" || e.verification_status === "stale") return false;
+  if (e.starts_at && new Date(e.starts_at).getTime() < now.getTime() - 24 * 3600 * 1000) return false; // already happened
+  return e.verification_status === "verified" || e.verification_status === "pending_verification" || e.verification_status === "cancelled";
 }
 
 export function planNotifications(args: {

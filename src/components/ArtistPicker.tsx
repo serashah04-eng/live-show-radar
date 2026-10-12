@@ -139,7 +139,7 @@ export function ArtistPicker({
                 <button type="button" aria-pressed={on} onClick={() => toggle(a.id)} className="group flex w-full flex-col items-center text-center" title={on ? `Unfollow ${a.name}` : `Follow ${a.name}`}>
                   <span className={`relative rounded-full p-[3px] transition ${on ? "bg-lime" : "bg-transparent group-hover:bg-line"}`}>
                     <Photo name={a.name} size={92} />
-                    {on && <span className="absolute -right-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-lime text-[11px] font-extrabold text-charcoal" aria-hidden="true">✓</span>}
+                    {on && <span className="absolute -right-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-lime text-[11px] font-extrabold text-ink" aria-hidden="true">✓</span>}
                   </span>
                   <span className="mt-2 line-clamp-2 text-xs font-semibold leading-tight">{a.name}</span>
                   <span className="mt-1 flex flex-wrap justify-center gap-1">

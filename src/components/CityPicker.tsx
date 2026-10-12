@@ -21,7 +21,7 @@ export function CityPicker({ initial, name = "cities", compact = false }: { init
     const i = order.indexOf(c);
     const on = i >= 0;
     return (
-      <button key={c} type="button" aria-pressed={on} onClick={() => toggle(c)} className={`chip ${on ? "!border-lime !bg-lime font-semibold !text-charcoal" : ""}`}>
+      <button key={c} type="button" aria-pressed={on} onClick={() => toggle(c)} className={`chip ${on ? "!border-lime !bg-lime font-semibold !text-ink" : ""}`}>
         {on && <span className="mr-1 text-[10px]">#{i + 1}</span>}{c}
       </button>
     );

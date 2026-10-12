@@ -1,3 +1,4 @@
+import { generateJson, optsFromEnv } from "../ai/llm.ts";
 import { stripHtml } from "./feeds.ts";
 
 /** Facts pulled from one piece of content. Every field is null/false unless the content states it. */
@@ -91,18 +92,8 @@ export async function extractWithGemini(
   input: { title: string; text: string; published: string | null; url: string },
   opts: { apiKey: string; model?: string },
 ): Promise<Extracted> {
-  const model = opts.model ?? "gemini-flash-latest";
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-goog-api-key": opts.apiKey },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: PROMPT(input.title, input.text, input.published, input.url) }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
-  const j = await res.json();
-  const raw = j?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+  const llm = { ...optsFromEnv(), googleKey: opts.apiKey, googleModel: opts.model ?? "gemini-flash-latest" };
+  const raw = await generateJson(PROMPT(input.title, input.text, input.published, input.url), llm);
   let o: Record<string, unknown>;
   try {
     o = JSON.parse(raw);

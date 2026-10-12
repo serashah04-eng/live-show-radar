@@ -10,6 +10,7 @@ export interface AlertContext {
   dateLabel: string; // already formatted, or "Date not announced"
   verified: boolean;
   corroborated: boolean;
+  conflict?: boolean; // sources disagree: shown, never silently resolved
   ticketUrl: string | null;
   sourceLinks: { url: string; label: string }[];
   eventUrl: string | null; // app link, only when APP_BASE_URL is a public https URL
@@ -26,11 +27,14 @@ export interface ComposedAlert {
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+export const UNVERIFIED_WARNING = "Non-credible or unverified source. Please check the official ticketer or promoter before acting.";
+
 function certainty(c: AlertContext): string {
   if (c.kind === "test") return "TEST ALERT. This is a sample message, not a real concert.";
-  if (c.verified) return "Verified.";
-  if (c.corroborated) return "Reported by 2+ websites. Not confirmed by an official source: check the links before you decide.";
-  return "Unconfirmed. Check the links before you decide.";
+  const extra = c.conflict ? " Sources disagree on a detail: both versions are on the event page." : "";
+  if (c.verified) return `CONFIRMED by an official or credible source.${extra}`;
+  if (c.corroborated) return `LIKELY: reported by 2+ independent websites, not confirmed by the official ticketer or promoter. Check the links before you decide.${extra}`;
+  return `UNVERIFIED: ${UNVERIFIED_WARNING}${extra}`;
 }
 
 export function composeAlert(c: AlertContext): ComposedAlert {
@@ -56,7 +60,7 @@ export function composeAlert(c: AlertContext): ComposedAlert {
       break;
     default:
       headline = `NEW SHOW: ${c.artists}`;
-      subject = `New show: ${c.artists}${c.city ? ` in ${c.city}` : ""}${c.verified ? "" : " (not confirmed)"}`;
+      subject = `New show: ${c.artists}${c.city ? ` in ${c.city}` : ""}${c.verified ? "" : c.corroborated ? " (likely)" : " (unverified)"}`;
   }
 
   const lines: string[] = [c.title, `Where: ${where}`, `When: ${c.dateLabel}`];
@@ -67,6 +71,7 @@ export function composeAlert(c: AlertContext): ComposedAlert {
     lines.push(`Evidence: ${c.phase.evidenceUrl}`);
     if (c.phase.excerpt) lines.push(`Page says: "${c.phase.excerpt}"`);
   }
+  if (!c.phase && (c.kind === "new_concert" || c.kind === "status_change")) lines.push("Early bird: not stated by any source we read yet. We alert you if one is announced.");
   lines.push(certainty(c));
   if (c.ticketUrl) lines.push(`Tickets: ${c.ticketUrl}`);
   for (const s of c.sourceLinks.slice(0, 3)) lines.push(`Source (${s.label}): ${s.url}`);

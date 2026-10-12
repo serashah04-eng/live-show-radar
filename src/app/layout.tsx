@@ -18,7 +18,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} h-full antialiased`}>
+    <html lang="en" className={`${display.variable} ${body.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("frontrow-theme");if(!t&&window.matchMedia("(prefers-color-scheme: light)").matches)t="light";if(t)document.documentElement.dataset.theme=t}catch(e){}` }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <div className="intro" aria-hidden="true">
           <div className="text-center">
@@ -26,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <p className="intro-count mt-6 inline-block" />
           </div>
         </div>
-        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-orange focus:px-3 focus:py-2 focus:text-charcoal">
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-orange focus:px-3 focus:py-2 focus:text-ink">
           Skip to content
         </a>
         <Suspense fallback={<header className="h-16 border-b border-line" />}>

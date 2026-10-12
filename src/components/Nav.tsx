@@ -4,6 +4,7 @@ import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { APP_NAME } from "@/lib/brand";
 import { isLocalOwnerMode } from "@/lib/local-mode";
 import { isTrialMode } from "@/lib/trial";
+import { ThemeToggle } from "./ThemeToggle";
 import { MenuOverlay, type MenuLink } from "./MenuOverlay";
 
 export async function Nav() {
@@ -47,6 +48,7 @@ export async function Nav() {
           )}
         </nav>
         <div className={user ? "" : "ml-auto"}>
+          <ThemeToggle />
           {user ? <MenuOverlay links={links} signOutAction={local ? undefined : signOut} email={user.email} /> : null}
         </div>
       </div>

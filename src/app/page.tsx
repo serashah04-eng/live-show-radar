@@ -23,7 +23,7 @@ export default function DashboardPage() {
 async function Dashboard() {
   const user = await requireUser();
   const sb = await createClient();
-  const [events, { prefs }, runs, failedAlerts] = await Promise.all([
+  const [events, { prefs, notif }, runs, failedAlerts] = await Promise.all([
     loadFeedEvents(sb),
     loadPrefs(sb, user.id),
     loadRecentRuns(sb, 12),
@@ -47,6 +47,11 @@ async function Dashboard() {
 
   return (
     <div className="space-y-12">
+      <p className="text-sm muted" role="status">
+        Alerts: Telegram <strong className={notif.telegram_enabled ? "text-lime" : "text-orange"}>{notif.telegram_enabled && notif.telegram_chat_id ? "on" : "not set up"}</strong>
+        {" · "}Email <strong className={notif.email_enabled && notif.email_address ? "text-lime" : "text-orange"}>{notif.email_enabled && notif.email_address ? "on" : "not set up"}</strong>
+        {" · "}<Link href="/settings" className="underline underline-offset-2">Change</Link>
+      </p>
       <Newsroom upcoming={upcoming} followedIds={prefs.followedArtistIds} />
 
       <FindShows pending={pending} followedCount={prefs.followedArtistIds.length} />

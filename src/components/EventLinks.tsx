@@ -10,7 +10,7 @@ export function EventLinks({ e }: { e: FeedEvent }) {
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {tix ? (
-        <a href={tix.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center rounded-full bg-lime px-3 text-xs font-bold text-charcoal">
+        <a href={tix.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center rounded-full bg-lime px-3 text-xs font-bold text-ink">
           Tickets<span className="sr-only"> on {tix.host}</span>
         </a>
       ) : (

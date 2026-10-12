@@ -46,6 +46,12 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
   const article = srcs.find((x) => x.url !== booking?.url) ?? null;
   const firstArtist = (e.event_artists as { artists: { name: string } | null }[]).map((a) => a.artists?.name).find(Boolean) ?? e.title;
   const q = (t: string) => encodeURIComponent(t);
+  const day = e.starts_at && e.date_precision !== "month" && e.date_precision !== "unknown" ? String(e.starts_at).slice(0, 10).replaceAll("-", "") : null;
+  const nextDay = day ? new Date(Date.UTC(+day.slice(0, 4), +day.slice(4, 6) - 1, +day.slice(6, 8) + 1)).toISOString().slice(0, 10).replaceAll("-", "") : null;
+  const ics = day && nextDay
+    ? "data:text/calendar;charset=utf-8," + encodeURIComponent(["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//FrontRow//EN", "BEGIN:VEVENT", `UID:${e.id}@frontrow`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`, `DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${nextDay}`, `SUMMARY:${firstArtist} (unconfirmed: check the source)`, `LOCATION:${[cleanVenue(e.venue), e.city].filter(Boolean).join(", ")}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n"))
+    : null;
+  const share = `https://wa.me/?text=${q(`${firstArtist} in ${e.city ?? "India"} on ${d.full}${article ? " " + article.url : ""}`)}`;
   const artists = (e.event_artists as { artists: { name: string } | null }[]).map((a) => a.artists?.name).filter(Boolean).join(" + ");
   const phases = e.ticket_phases as {
     id: string; phase: string; starts_at: string | null; ends_at: string | null; price_text: string | null;
@@ -165,6 +171,8 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
         <h2 id="nr" className="mb-3 text-2xl">News and reviews</h2>
         <p className="mb-3 text-sm muted">These open a search for you. They are searches, not claims: FrontRow has not read the results.</p>
         <div className="flex flex-wrap gap-2">
+          {ics && <a className="btn-ghost min-h-8 px-3.5" href={ics} download={`${firstArtist}.ics`}>Add to calendar</a>}
+          <a className="btn-ghost min-h-8 px-3.5" target="_blank" rel="noopener noreferrer" href={share}>Share on WhatsApp</a>
           <a className="btn-ghost min-h-8 px-3.5" target="_blank" rel="noopener noreferrer" href={`https://news.google.com/search?q=${q(firstArtist + " India concert")}`}>Latest news</a>
           <a className="btn-ghost min-h-8 px-3.5" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/search?q=${q(firstArtist + " live India concert review")}`}>Concert reviews</a>
           <a className="btn-ghost min-h-8 px-3.5" target="_blank" rel="noopener noreferrer" href={`https://www.youtube.com/results?search_query=${q(firstArtist + " live India")}`}>Watch on YouTube</a>

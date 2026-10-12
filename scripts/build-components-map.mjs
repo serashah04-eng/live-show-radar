@@ -11,27 +11,29 @@ const COLS = ["Actor", "Trigger", "Input", "Context", "Processing", "AI", "Outpu
 
 const B = (id, col, row, status, ...lines) => ({ id, col, row, status, lines });
 const boxes = [
-  B("A1", 0, 0, "tested", "Karan (fan)", "Taps to pick artists,", "genres, cities, alerts"),
+  B("A1", 0, 0, "tested", "Karan (fan)", "Picks genre, then artists,", "city priority, alerts"),
   B("A2", 0, 1, "built", "Owner / admin", "Reviews and verifies", "events with evidence"),
-  B("A3", 0, 2, "pending", "GitHub Actions", "scheduler (30 min)", "not deployed yet"),
+  B("A3", 0, 2, "built", "Schedulers", "Vercel cron (daily) +", "GitHub Actions (30 min)"),
 
-  B("T1", 1, 0, "tested", "Pick-your-scene wizard,", "artist tiles, settings", "(Next.js, local owner mode)"),
+  B("T1", 1, 0, "tested", "One-page onboarding,", "genre-first artist picker,", "settings"),
   B("T2", 1, 1, "built", "Add event by link", "form"),
   B("T3", 1, 2, "built", "Review: confirm event", "or add ticket phase"),
-  B("T4", 1, 3, "tested", "POST /api/cron/discover", "CRON_SECRET required"),
-  B("T5", 1, 4, "tested", "POST /api/cron/notify", "CRON_SECRET required"),
+  B("T4", 1, 3, "tested", "/api/cron/discover", "CRON_SECRET required"),
+  B("T5", 1, 4, "tested", "/api/cron/notify", "CRON_SECRET required"),
+  B("T6", 1, 5, "tested", "Find shows now", "(per-artist live search)"),
 
-  B("I1", 2, 0, "tested", "176-artist catalogue", "+ followed list, aliases"),
+  B("I1", 2, 0, "tested", "194 artists, 192 photos", "(Deezer / Wikipedia)"),
   B("I2", 2, 1, "tested", "33 genres, 115 cities,", "alert preferences"),
   B("I3", 2, 2, "built", "User-submitted URL", "(never fetched or scraped)"),
   B("I4", 2, 3, "tested", "Ticketmaster Discovery", "API (0 India events found)"),
-  B("I5", 2, 4, "tested", "Google Search results", "via Gemini grounding"),
+  B("I5", 2, 4, "tested", "Web search results", "via Gemini Flash"),
+  B("I6", 2, 5, "built", "Credible sources list:", "RSS, sitemaps, JSON-LD"),
 
-  B("C1", 3, 0, "tested", "Supabase Postgres + RLS", "16 tables, 5 migrations"),
+  B("C1", 3, 0, "tested", "Supabase Postgres + RLS", "6 migrations applied"),
   B("C2", 3, 1, "tested", "Evidence, timestamps,", "verification status"),
   B("C3", 3, 2, "tested", "notification_log", "dedupe keys, retries"),
-  B("C4", 3, 3, "pending", "GitHub repo (public)", "code not pushed yet"),
-  B("C5", 3, 4, "pending", "Vercel hosting", "not deployed yet"),
+  B("C4", 3, 3, "tested", "GitHub repo (public)", "every change pushed"),
+  B("C5", 3, 4, "tested", "Vercel hosting", "auto-deploy on push"),
 
   B("P1", 4, 0, "tested", "Source adapters", "Gemini, Ticketmaster, manual"),
   B("P2", 4, 1, "tested", "Normalize, deduplicate,", "match artists (rules)"),
@@ -39,24 +41,29 @@ const boxes = [
   B("P4", 4, 3, "built", "Owner verification", "evidence URL + quote"),
   B("P5", 4, 4, "tested", "Alert planner", "prefs + evidence rules"),
   B("P6", 4, 5, "tested", "Dispatcher: reserve,", "send, retry, log"),
+  B("P7", 4, 6, "built", "Source monitor: relevance", "gate + credibility label"),
+  B("P8", 4, 7, "tested", "Link rules: ticketer-only", "booking, venue clean-up"),
 
   B("AI1", 5, 0, "tested", "Gemini Flash", "grounded search +", "structured extraction"),
   B("AI2", 5, 1, "built", "Gemini Flash", "ambiguous artist match", "(needs 0.85+ confidence)"),
+  B("AI3", 5, 2, "built", "Gemini Flash", "reads source pages", "(never alone = confirmed)"),
+  B("AI4", 5, 3, "tested", "Fallback: Gemini Flash", "via OpenRouter when", "Google quota is 429"),
 
-  B("O1", 6, 0, "tested", "Feed, dashboard,", "event pages, filters"),
+  B("O1", 6, 0, "tested", "Newsroom, feed, event", "page: tickets / map /", "source links"),
   B("O2", 6, 1, "built", "In-app early-bird", "pop-up (once per user)"),
   B("O3", 6, 2, "tested", "Telegram alert", "(test message delivered)"),
   B("O4", 6, 3, "built", "Email via Resend", "(not delivery-tested)"),
   B("O5", 6, 4, "tested", "Status page, run logs,", "failed-alert list"),
+  B("O6", 6, 5, "built", "UNVERIFIED alerts with", "warning text (planned)"),
 ];
 
 const edges = [
-  ["A1", "T1"], ["A1", "T2"], ["A2", "T3"], ["A3", "T4"],
-  ["T1", "I2"], ["T1", "I1"], ["T2", "I3"], ["T3", "P4"], ["T4", "I1"], ["T4", "I4"], ["T4", "I5"], ["T5", "P5"],
-  ["I1", "P1"], ["I4", "P1"], ["I3", "P1"], ["I5", "AI1"], ["I2", "P5"],
-  ["AI1", "P1"], ["P1", "P2"], ["P2", "P3"], ["P2", "AI2"], ["P2", "C1"], ["P3", "C2"], ["P4", "C2"],
-  ["C1", "P5"], ["P5", "P6"], ["P6", "C3"], ["P6", "O3"], ["P6", "O4"],
-  ["C1", "O1"], ["C2", "O1"], ["C1", "O2"], ["C3", "O5"], ["C4", "C5"],
+  ["A1", "T1"], ["A1", "T2"], ["A1", "T6"], ["A2", "T3"], ["A3", "T4"], ["A3", "T5"],
+  ["T1", "I2"], ["T1", "I1"], ["T2", "I3"], ["T3", "P4"], ["T4", "I1"], ["T4", "I4"], ["T4", "I5"], ["T4", "I6"], ["T5", "P5"], ["T6", "I5"],
+  ["I1", "P1"], ["I4", "P1"], ["I3", "P1"], ["I5", "AI1"], ["I6", "P7"], ["I2", "P5"],
+  ["AI1", "P1"], ["AI4", "P1"], ["AI3", "P7"], ["P1", "P2"], ["P7", "P2"], ["P2", "P3"], ["P2", "AI2"], ["P2", "C1"], ["P3", "C2"], ["P4", "C2"],
+  ["C1", "P5"], ["P5", "P6"], ["P6", "C3"], ["P6", "O3"], ["P6", "O4"], ["P5", "O6"],
+  ["C1", "P8"], ["P8", "O1"], ["C2", "O1"], ["C1", "O2"], ["C3", "O5"], ["C4", "C5"],
 ];
 
 const W = 188, H = 74, GX = 26, STEP = 214, TOP = 118, ROWSTEP = 92, LEFT = 24;
@@ -80,7 +87,7 @@ let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${tota
 <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${C.slateText}"/></marker></defs>
 <rect width="100%" height="100%" fill="${C.bg}"/>
 <text x="${LEFT}" y="34" fill="${C.off}" font-size="22" font-weight="700" letter-spacing="1"><tspan fill="${C.lime}">FRONTROW</tspan>  ·  COMPONENTS MAP</text>
-<text x="${LEFT}" y="54" fill="${C.slateText}" font-size="12">As implemented, status as of ${AS_OF}. Arrows show data flow. This map is not evidence that anything works: see docs/NINE-CHECKLIST.md for the tests.</text>
+<text x="${LEFT}" y="54" fill="${C.slateText}" font-size="12">As implemented, status as of ${AS_OF}. Arrows show data flow. This map is not evidence that anything works: see docs/AUDIT_REPORT.md and the test files for the evidence.</text>
 `;
 
 COLS.forEach((c, i) => {
@@ -111,7 +118,7 @@ for (const b of boxes) {
 }
 
 const ly = totalH - 30;
-const legend = [["tested", "Tested with a real run (see checklist)"], ["built", "Built, not yet exercised end to end"], ["pending", "Waiting on deployment / not done yet"]];
+const legend = [["tested", "Tested with a real run (see checklist)"], ["built", "Built, not yet exercised end to end"], ["pending", "Waiting on something not done yet"]];
 legend.forEach(([s, label], i) => {
   const lx = LEFT + i * 330;
   svg += `<rect x="${lx}" y="${ly - 12}" width="26" height="16" rx="4" ${style[s]}/><text x="${lx + 36}" y="${ly + 1}" fill="${C.off}" font-size="12">${esc(label)}</text>`;
