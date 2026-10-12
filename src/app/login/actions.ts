@@ -1,11 +1,11 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { isTrialMode } from "@/lib/trial";
+import { ensureTrialAccount, trialPassword } from "@/lib/trial-auth";
 
 export interface AuthState {
   error?: string;
@@ -15,25 +15,31 @@ export interface AuthState {
 const emailOk = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
 /**
- * TRIAL MODE sign-in: any email, any password. The account is created on first use and the password is never
- * checked: a one-time login token is issued for that email and exchanged for a normal session, so the rest of the
- * app (row-level security, per-user preferences) works exactly as it does for real accounts.
+ * TRIAL MODE sign-in: any email, any password. The password typed is ignored. Each email has a server-derived password
+ * (see trial-auth.ts); we sign in with it using a normal password sign-in. The account is created on first use.
+ * If anything fails, the real reason is written to the server log (never to the screen).
  */
 async function trialLogin(rawEmail: string): Promise<AuthState> {
   const email = rawEmail.toLowerCase();
-  const admin = createServiceClient();
-  const created = await admin.auth.admin.createUser({ email, email_confirm: true, password: `${randomUUID()}${randomUUID()}` });
-  const isNew = !created.error;
-  if (created.error && !/already|registered|exists/i.test(created.error.message)) {
-    return { error: "Could not sign you in right now. Please try again." };
-  }
-  const link = await admin.auth.admin.generateLink({ type: "magiclink", email });
-  const tokenHash = link.data?.properties?.hashed_token;
-  if (link.error || !tokenHash) return { error: "Could not sign you in right now. Please try again." };
+  const secret = process.env.SUPABASE_SECRET_KEY ?? "";
+  const fail = (step: string, detail: string): AuthState => {
+    console.error(`trial login failed at ${step}: ${detail}`.replace(/sb_secret_[A-Za-z0-9_-]+/g, "***"));
+    return { error: "Could not sign you in right now. Please try again in a moment." };
+  };
+  if (!secret) return fail("config", "SUPABASE_SECRET_KEY is not set");
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
-  if (error) return { error: "Could not sign you in right now. Please try again." };
+  const password = trialPassword(email, secret);
+  let signedIn = !(await supabase.auth.signInWithPassword({ email, password })).error;
+  let isNew = false;
+  if (!signedIn) {
+    const account = await ensureTrialAccount(createServiceClient(), email, secret);
+    if ("error" in account) return fail("account", account.error);
+    isNew = account.isNew;
+    const retry = await supabase.auth.signInWithPassword({ email, password: account.password });
+    if (retry.error) return fail("sign-in", retry.error.message);
+    signedIn = true;
+  }
   redirect(isNew ? "/start" : "/");
 }
 
