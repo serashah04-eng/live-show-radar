@@ -18,7 +18,7 @@ export async function Nav() {
         { href: "/feed", label: "Concert feed", hint: "every show, filtered" },
         { href: "/favourites", label: "Favourites", hint: "your collection" },
         { href: "/artists", label: "Artists", hint: "browse and add" },
-        { href: "/start", label: "Pick your scene", hint: "genres, cities, artists" },
+        { href: "/start", label: "Pick your scene", hint: "cities and artists" },
         { href: "/submit", label: "Add event", hint: "found a show? paste the link" },
         { href: "/settings", label: "Settings", hint: "alerts and preferences" },
         ...(admin ? [{ href: "/review", label: "Review", hint: "owner only" }, { href: "/status", label: "Status", hint: "owner only" }] : []),
@@ -27,7 +27,8 @@ export async function Nav() {
 
   return (
     <header className="border-b border-line">
-      <div className="wrap flex items-center gap-4 py-3">
+      <div className="wrap flex items-center gap-3 py-3">
+        {user ? <MenuOverlay links={links} signOutAction={local ? undefined : signOut} email={user.email} /> : null}
         <Link href="/" className="wordmark text-3xl sm:text-4xl" aria-label={`${APP_NAME} home`}>
           {APP_NAME}
         </Link>
@@ -43,15 +44,14 @@ export async function Nav() {
           {user && (
             <>
               <Link href="/feed" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Feed</Link>
+              <Link href="/start" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Pick your scene</Link>
               <Link href="/favourites" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Favourites</Link>
               <Link href="/artists" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Artists</Link>
-              <Link href="/settings" className="rounded-full px-3 py-2 text-sm muted hover:text-offwhite">Settings</Link>
             </>
           )}
         </nav>
         <div className={user ? "" : "ml-auto"}>
           <ThemeToggle />
-          {user ? <MenuOverlay links={links} signOutAction={local ? undefined : signOut} email={user.email} /> : null}
         </div>
       </div>
     </header>
